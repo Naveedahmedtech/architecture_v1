@@ -1,5 +1,5 @@
-const pool = require("../../config/db.connect");
-const { responseHandler } = require("../common/apiResponseHandler");
+const pool = require("../../../config/db.connect");
+const { responseHandler } = require("../../common/apiResponseHandler");
 const {
   buildJoinClause,
   buildWhereClause,
@@ -7,9 +7,7 @@ const {
   getPaginationInfo,
   buildAggregateClause,
   buildGroupByClause,
-} = require("./helper/queryHelper");
-
-
+} = require("../helper/queryHelper");
 
 exports.getAll = async (
   req,
@@ -51,9 +49,9 @@ exports.getAll = async (
 
     const totalResult = await pool.query(countQuery);
     const totalRows = parseInt(totalResult.rows[0].count, 10);
-    
+
     let finalQuery = baseQuery;
-    console.log(finalQuery); // Log the final query for debugging
+
     let queryParams = [];
     if (page > 0 && limit > 0) {
       finalQuery += ` LIMIT $1 OFFSET $2`;

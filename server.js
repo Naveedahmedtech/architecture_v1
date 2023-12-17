@@ -5,9 +5,9 @@ const express = require("express");
 const path = require("path");
 
 // project files
-const customersController = require("./src/app/controllers/orders/orders");
 const pool = require("./src/config/db.connect");
 const initDatabase = require("./src/config/db.config");
+const apiRouter = require('./src/app/routes/api')
 
 // Connect to the database
 pool.connect((err, client, release) => {
@@ -28,8 +28,6 @@ app.use(express.json());
 
 app.use("public", express.static(path.join(__dirname, "public")));
 
-app.get("/allOrders", customersController.getDetailedOrders);
-app.get("/getAllOrders", customersController.getAllOrders);
-
+app.use("/api", apiRouter);
 
 app.listen(PORT, ()=> console.log(`App listening on ${PORT}`));
