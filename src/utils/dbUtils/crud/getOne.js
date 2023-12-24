@@ -1,4 +1,4 @@
-const pool = require("../../../config/db.connect");
+const pool = require("../../../config/db/db.connect");
 const { responseHandler } = require("../../common/apiResponseHandler");
 const {
   buildJoinClause,

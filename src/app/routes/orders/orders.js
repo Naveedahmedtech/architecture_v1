@@ -6,7 +6,6 @@ const router = express.Router();
 const orderController = require('../../controllers/orders/orders')
 
 router.get("/allOrders", orderController.getDetailedOrders);
-router.get("/getAllOrders", orderController.getAllOrders);
 router.get("/getOne/:id", orderController.getOneOrder);
 router.get("/deleteOne/:id", orderController.deleteOneOrder);
 router.get("/deleteAll", orderController.deleteAllOrders);

@@ -5,8 +5,8 @@ const express = require("express");
 const path = require("path");
 
 // project files
-const pool = require("./src/config/db.connect");
-const initDatabase = require("./src/config/db.config");
+const pool = require("./src/config/db/db.connect");
+const initDatabase = require("./src/config/db/db.config");
 const apiRouter = require('./src/app/routes/api')
 
 // Connect to the database

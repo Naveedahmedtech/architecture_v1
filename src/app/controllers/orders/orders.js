@@ -20,7 +20,7 @@ exports.createOrders = async (req, res) => {
       'name', users.name, 
       'email', users.email
     )
-  ) as orders
+  ) as orderDetails
 `,
     joins: [
       {
@@ -44,56 +44,47 @@ exports.updateOrder = async (req, res) => {
 };
 
 exports.getDetailedOrders = async (req, res) => {
+  const { status, userId } = req.query;
+
   try {
+    let filters = [];
+
+    if (status) {
+      filters.push({
+        field: "orders.status",
+        operator: "=",
+        value: `'${status}'`,
+      });
+    }
+
+    if (userId) {
+      filters.push({ field: "orders.user_id", operator: "=", value: userId });
+    }
+
     await getAll(req, res, {
       tableName: "orders",
-      fields: ["orders.id", "orders.order_date", "users.name as userName"],
+      fields: [
+        "orders.id",
+        "orders.order_date",
+        "orders.amount",
+        "json_build_object('name', users.name, 'email', users.email) as user",
+      ],
       joins: [
         {
           table: "users",
           condition: "orders.user_id = users.id",
         },
       ],
-      filters: [
-        {
-          field: "orders.status",
-          operator: "=",
-          value: "'delivered'",
-        },
-      ],
-      aggregates: [
-        {
-          function: "COUNT",
-          field: "orders.id",
-          alias: "totalOrders",
-        },
-        {
-          function: "SUM",
-          field: "orders.amount",
-          alias: "totalAmount",
-        },
-      ],
+      filters,
+      aggregates: [],
       defaultSortField: "orders.order_date",
       additionalOptions: {
-        groupBy: "orders.id, orders.order_date, users.name, orders.user_id",
+        groupBy: "orders.id, orders.order_date, users.name, users.email, orders.user_id",
       },
     });
   } catch (error) {
     console.error("Error retrieving detailed orders:", error);
     responseHandler(res, 500, false, "Failed to retrieve detailed orders");
-  }
-};
-
-// Use case for retrieving all records from the 'products' table
-exports.getAllOrders = async (req, res) => {
-  try {
-    await getAll(req, res, {
-      tableName: "orders",
-    });
-  } catch (error) {
-    // Handle any potential errors that might occur
-    console.error("Error retrieving all products:", error);
-    responseHandler(res, 500, false, "Failed to retrieve products");
   }
 };
 

@@ -1,6 +1,7 @@
-const pool = require("../../../config/db.connect");
+const pool = require("../../../config/db/db.connect");
 const { responseHandler } = require("../../common/apiResponseHandler");
-const { buildJoinClause } = require("../helper/queryHelper");
+const { buildJoinClause, insertRecord, selectQuery } = require("../helper/queryHelper");
+
 
 exports.createOne = async (
   req,
@@ -11,31 +12,29 @@ exports.createOne = async (
     returnFields = "*",
     joins = [],
     successMessage = "Record created successfully",
+    sortField,
+    sortOrder,
+    aggregates = [],
+    groupByOptions = {},
   }
 ) => {
   try {
-    if (!data || Object.keys(data).length === 0) {
-      throw new Error("No data provided for the new record");
-    }
+    const newRecordId = await insertRecord(tableName, data, pool);
 
-    const fields = Object.keys(data).join(", ");
-    const values = Object.values(data);
-    const valuePlaceholders = values
-      .map((_, index) => `$${index + 1}`)
-      .join(", ");
-    const insertQuery = `INSERT INTO ${tableName} (${fields}) VALUES (${valuePlaceholders}) RETURNING id`;
-    const insertResult = await pool.query(insertQuery, values);
+    const records = await selectQuery(pool, {
+      tableName: tableName,
+      fields: returnFields, 
+      joins: joins,
+      filters: [
+        { field: `${tableName}.id`, operator: "=", value: newRecordId },
+      ],
+      sortField,
+      sortOrder,
+      aggregates,
+      groupByOptions,
+    });
 
-    if (insertResult.rowCount === 0) {
-      return responseHandler(res, 400, false, "Failed to create a new record");
-    }
-
-    const joinClause = buildJoinClause(joins);
-    const newRecordId = insertResult.rows[0].id;
-    const retrieveQuery = `SELECT ${returnFields} FROM ${tableName} ${joinClause} WHERE ${tableName}.id = $1`;
-    const retrieveResult = await pool.query(retrieveQuery, [newRecordId]);
-
-    if (retrieveResult.rowCount === 0) {
+    if (records.length === 0) {
       return responseHandler(res, 404, false, "Newly created record not found");
     }
 
@@ -44,10 +43,28 @@ exports.createOne = async (
       201,
       true,
       successMessage,
-      retrieveResult.rows[0]
+      records
     );
+
   } catch (error) {
-    console.error("Error creating a new record:", error);
-    return responseHandler(res, 500, false, "Internal Server Error");
+    switch (error.message) {
+      case "InsertDataMissing":
+        return responseHandler(
+          res,
+          400,
+          false,
+          "No data provided for the new record"
+        );
+      case "InsertOperationFailed":
+        return responseHandler(
+          res,
+          400,
+          false,
+          "Failed to create a new record"
+        );
+      default:
+        console.error("Error creating a new record:", error);
+        return responseHandler(res, 500, false, "Internal Server Error");
+    }
   }
 };
