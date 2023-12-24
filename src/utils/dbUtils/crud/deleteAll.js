@@ -1,6 +1,6 @@
 const pool = require("../../../config/db/db.connect");
 const { responseHandler } = require("../../common/apiResponseHandler");
-const { buildWhereClause } = require("../helper/queryHelper");
+const { deleteRecords, countRecords } = require("../helper/dbOperations");
 
 exports.deleteAll = async (
   req,
@@ -13,26 +13,30 @@ exports.deleteAll = async (
   }
 ) => {
   try {
-    const whereClause = buildWhereClause(filters);
+    const count = await countRecords(pool, tableName, filters);
 
-    if (!whereClause) {
-      throw new Error("No valid filter provided for deletion");
-    }
-
-    const deleteQuery = `DELETE FROM ${tableName} ${whereClause} RETURNING *`;
-
-    const result = await pool.query(deleteQuery);
-
-    if (result.rowCount === 0) {
+    if (count === 0) {
       return responseHandler(res, 404, false, notFoundMessage);
     }
 
+    const deletedRecords = await deleteRecords(pool, tableName, filters, true);
+
     return responseHandler(res, 200, true, successMessage, {
-      deletedRecords: result.rows,
-      count: result.rowCount,
+      deletedCount: count, 
+      deletedRecords: deletedRecords,
     });
   } catch (error) {
-    console.error("Error deleting records:", error);
-    return responseHandler(res, 500, false, "Internal Server Error");
+    switch (error.message) {
+      case "DeleteFilterMissing":
+        return responseHandler(
+          res,
+          400,
+          false,
+          "No valid filter provided for deletion"
+        );
+      default:
+        console.error("Error deleting records:", error);
+        return responseHandler(res, 500, false, "Internal Server Error");
+    }
   }
 };

@@ -5,12 +5,12 @@ const router = express.Router();
 // project files
 const orderController = require('../../controllers/orders/orders')
 
-router.get("/allOrders", orderController.getDetailedOrders);
-router.get("/getOne/:id", orderController.getOneOrder);
-router.get("/deleteOne/:id", orderController.deleteOneOrder);
-router.get("/deleteAll", orderController.deleteAllOrders);
 router.post("/create", orderController.createOrders);
 router.put("/update", orderController.updateOrder);
+router.get("/getOne/:id", orderController.getOneOrder);
+router.get("/getAll", orderController.getAllOrders);
+router.delete("/deleteOne/:id", orderController.deleteOneOrder);
+router.delete("/deleteAll", orderController.deleteAllOrders);
 
 
 module.exports = router;

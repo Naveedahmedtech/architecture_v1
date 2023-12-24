@@ -1,6 +1,6 @@
 const pool = require("../../../config/db/db.connect");
 const { responseHandler } = require("../../common/apiResponseHandler");
-const { buildJoinClause, insertRecord, selectQuery } = require("../helper/queryHelper");
+const { insertRecord, selectQuery } = require("../helper/dbOperations");
 
 
 exports.createOne = async (
@@ -33,10 +33,6 @@ exports.createOne = async (
       aggregates,
       groupByOptions,
     });
-
-    if (records.length === 0) {
-      return responseHandler(res, 404, false, "Newly created record not found");
-    }
 
     return responseHandler(
       res,

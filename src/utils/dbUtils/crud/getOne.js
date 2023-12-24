@@ -1,11 +1,6 @@
 const pool = require("../../../config/db/db.connect");
 const { responseHandler } = require("../../common/apiResponseHandler");
-const {
-  buildJoinClause,
-  buildWhereClause,
-  getSortClause,
-  buildGroupByClause,
-} = require("../helper/queryHelper");
+const { selectQuery } = require("../helper/dbOperations");
 
 exports.getOne = async (
   req,
@@ -22,32 +17,32 @@ exports.getOne = async (
   }
 ) => {
   try {
-    const selectedFields =
-      typeof fields === "string" ? fields : fields.join(", ");
-    const joinClause = buildJoinClause(joins);
-    const whereClause = buildWhereClause(filters);
-    const sortClause = sortField ? getSortClause(sortField, sortOrder, "") : "";
-
-    const groupByClause = buildGroupByClause(additionalOptions);
-
-    const finalQuery = `SELECT ${selectedFields} FROM ${tableName} ${joinClause} ${whereClause} ${sortClause} LIMIT 1`;
-    console.log(finalQuery); // Debugging
-
-    const result = await pool.query(finalQuery);
-
-    if (result.rowCount === 0) {
-      return responseHandler(res, 404, false, notFoundMessage);
-    }
+    const records = await selectQuery(pool, {
+      tableName,
+      fields,
+      joins,
+      filters,
+      sortField,
+      sortOrder,
+      limit: 1,
+      aggregates: [], 
+      groupByOptions: additionalOptions,
+    });
 
     return responseHandler(
       res,
       200,
       true,
       "Record retrieved successfully",
-      result.rows[0]
+      records[0]
     );
   } catch (error) {
-    console.error("Error retrieving record:", error);
-    return responseHandler(res, 500, false, "Internal Server Error");
+    switch (error.message) {
+      case "SelectedRecordNotFound":
+        return responseHandler(res, 404, false, "No records found");
+      default:
+        console.error("Error fetching records:", error);
+        return responseHandler(res, 500, false, "Internal Server Error");
+    }
   }
 };

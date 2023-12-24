@@ -1,6 +1,6 @@
 const pool = require("../../../config/db/db.connect");
 const { responseHandler } = require("../../common/apiResponseHandler");
-const { updateRecord, selectQuery } = require("../helper/queryHelper");
+const { updateRecord, selectQuery } = require("../helper/dbOperations");
 
 exports.updateOne = async (
   req,

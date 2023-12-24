@@ -43,7 +43,7 @@ exports.updateOrder = async (req, res) => {
   });
 };
 
-exports.getDetailedOrders = async (req, res) => {
+exports.getAllOrders = async (req, res) => {
   const { status, userId } = req.query;
 
   try {
@@ -139,12 +139,12 @@ exports.deleteOneOrder = async (req, res) => {
 exports.deleteAllOrders = async (req, res) => {
   await deleteAll(req, res, {
     tableName: "orders",
-    filters: [
-      {
-        field: "status",
-        operator: "=",
-        value: "'delivered'",
-      },
-    ],
+    // filters: [
+    //   {
+    //     field: "status",
+    //     operator: "=",
+    //     value: "'delivered'",
+    //   },
+    // ],
   });
 };
