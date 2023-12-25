@@ -22,6 +22,7 @@ exports.createOrders = async (req, res) => {
     )
   ) as orderDetails
 `,
+    excludeFields: [],
     joins: [
       {
         table: "users",
@@ -79,7 +80,8 @@ exports.getAllOrders = async (req, res) => {
       aggregates: [],
       defaultSortField: "orders.order_date",
       additionalOptions: {
-        groupBy: "orders.id, orders.order_date, users.name, users.email, orders.user_id",
+        groupBy:
+          "orders.id, orders.order_date, users.name, users.email, orders.user_id",
       },
     });
   } catch (error) {

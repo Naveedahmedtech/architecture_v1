@@ -21,6 +21,7 @@ const insertRecord = async (tableName, data, pool) => {
 
     return insertResult.rows[0].id;
   } catch (error) {
+    console.log(error);
     throw new Error("InsertOperationFailed");
   }
 };

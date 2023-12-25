@@ -10,6 +10,7 @@ exports.createOne = async (
     tableName,
     data,
     returnFields = "*",
+    excludeFields = [],
     joins = [],
     successMessage = "Record created successfully",
     sortField,
@@ -18,12 +19,14 @@ exports.createOne = async (
     groupByOptions = {},
   }
 ) => {
+  console.log(excludeFields);
+
   try {
     const newRecordId = await insertRecord(tableName, data, pool);
 
     const records = await selectQuery(pool, {
       tableName: tableName,
-      fields: returnFields, 
+      fields: returnFields,
       joins: joins,
       filters: [
         { field: `${tableName}.id`, operator: "=", value: newRecordId },
@@ -32,16 +35,10 @@ exports.createOne = async (
       sortOrder,
       aggregates,
       groupByOptions,
+      excludeFields,
     });
 
-    return responseHandler(
-      res,
-      201,
-      true,
-      successMessage,
-      records
-    );
-
+    return responseHandler(res, 201, true, successMessage, records);
   } catch (error) {
     switch (error.message) {
       case "InsertDataMissing":
