@@ -8,7 +8,12 @@ const { JWT_SECRET } = require("../../constants/common");
  * @returns {string} - The generated JWT token.
  */
 const generateToken = (payload, expiresIn = "1h") => {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn });
+  try {
+    return jwt.sign(payload, JWT_SECRET, { expiresIn });
+  } catch (error) {
+    console.error("Error generating JWT token:", error);
+    throw new Error("JWTGeneratorError");
+  }
 };
 
 /**
@@ -20,8 +25,8 @@ const verifyToken = (token) => {
   try {
     return jwt.verify(token, JWT_SECRET);
   } catch (error) {
-    console.error("JWT Verification Error:", error.message);
-    return null;
+    console.error("JWT Verification Error:", error);
+    throw new Error("JWTVerificationError");
   }
 };
 

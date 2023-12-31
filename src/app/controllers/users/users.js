@@ -1,21 +1,16 @@
-const { hashPassword } = require("../../../lib/common/bcrypt");
-const { createOne } = require("../../../utils/dbUtils/crud/createOne");
+// project external files
 
-exports.register = async (req, res) => {
-  const { full_name, email, password } = req.body;
+// project files
 
-  const hashedPassword = await hashPassword(password);
+const { getAll } = require("../../../utils/dbUtils/crud/getAll");
 
-  const data = {
-    full_name: full_name,
-    email: email,
-    password: hashedPassword,
-  };
-
-  createOne(req, res, {
-    tableName: "users",
-    data: data,
-    returnFields: "*",
-    excludeFields: ["password"],
-  });
+exports.getAll = async (req, res) => {
+  try {
+    await getAll(req, res, {
+      tableName: "users",
+    });
+  } catch (error) {
+    console.error("Error retrieving detailed users:", error);
+    return responseHandler(res, 500, false, "Failed to retrieve user details");
+  }
 };

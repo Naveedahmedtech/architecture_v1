@@ -4,8 +4,8 @@ const router = express.Router();
 
 // project files
 const userController = require("../../controllers/users/users");
+const authGuard = require("../../../middleware/authGaurd");
 
-router.post("/register", userController.register);
-// router.post("/signIn",  userController.signIn);
+router.get("/getAll", authGuard, userController.getAll);
 
 module.exports = router;
