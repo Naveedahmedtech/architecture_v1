@@ -1,4 +1,3 @@
-const pool = require("../../../config/db/db.connect");
 const { responseHandler } = require("../../common/apiResponseHandler");
 const { insertRecord, selectQuery } = require("../helper/dbOperations");
 
@@ -22,9 +21,9 @@ exports.createOne = async (
   console.log(excludeFields);
 
   try {
-    const newRecordId = await insertRecord(tableName, data, pool);
+    const newRecordId = await insertRecord(tableName, data);
 
-    const records = await selectQuery(pool, {
+    const records = await selectQuery({
       tableName: tableName,
       fields: returnFields,
       joins: joins,

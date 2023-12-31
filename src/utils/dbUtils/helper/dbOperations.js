@@ -1,6 +1,7 @@
+const pool = require("../../../config/db/db.connect");
 const { buildWhereClause, buildJoinClause, buildGroupByClause, buildAggregateClause, getSortClause } = require("./queryHelper");
 
-const insertRecord = async (tableName, data, pool) => {
+const insertRecord = async (tableName, data) => {
   if (!data || Object.keys(data).length === 0) {
     throw new Error("InsertDataMissing");
   }
@@ -26,51 +27,65 @@ const insertRecord = async (tableName, data, pool) => {
   }
 };
 
-const updateRecord = async (pool, tableName, data, filters) => {
-  if (!data || Object.keys(data).length === 0) {
-    throw new Error("UpdateDataMissing");
+const updateRecord = async (tableName, data, filters) => {
+  try {
+    if (!data || Object.keys(data).length === 0) {
+      throw new Error("UpdateDataMissing");
+    }
+    if (!filters || filters.length === 0) {
+      throw new Error("UpdateFilterMissing");
+    }
+
+    const updates = Object.keys(data)
+      .map((key, index) => `${key} = $${index + 1}`)
+      .join(", ");
+    const dataValues = Object.values(data);
+
+    const { clause: whereClause, values: filterValues } = buildWhereClause(
+      filters,
+      dataValues.length
+    );
+
+    const combinedValues = [...dataValues, ...filterValues];
+
+    const updateQuery = `UPDATE ${tableName} SET ${updates} ${whereClause} RETURNING *`;
+    const updateResult = await pool.query(updateQuery, combinedValues);
+
+    if (updateResult.rowCount === 0) {
+      throw new Error("RecordNotFound");
+    }
+
+    return updateResult.rows[0];
+  } catch (error) {
+    console.error(`Error updating record in ${tableName}:`, error.message);
+    throw new Error("UpdateDatabaseQueryError"); 
   }
-  if (!filters || filters.length === 0) {
-    throw new Error("UpdateFilterMissing");
-  }
-
-  const updates = Object.keys(data)
-    .map((key, index) => `${key} = $${index + 1}`)
-    .join(", ");
-  const values = Object.values(data);
-
-  const whereClause = buildWhereClause(filters);
-  const updateQuery = `UPDATE ${tableName} SET ${updates} ${whereClause} RETURNING *`;
-  const updateResult = await pool.query(updateQuery, values);
-
-  if (updateResult.rowCount === 0) {
-    throw new Error("RecordNotFound");
-  }
-
-  return updateResult.rows[0];
 };
 
-const selectQuery = async (
-  pool,
-  {
-    tableName,
-    fields = "*",
-    joins = [],
-    filters = [],
-    sortField,
-    sortOrder,
-    limit,
-    offset,
-    aggregates = [],
-    groupByOptions = {},
-  }
-) => {
+
+
+
+
+
+const selectQuery = async ({
+  tableName,
+  fields = "*",
+  joins = [],
+  filters = [],
+  sortField,
+  sortOrder,
+  limit,
+  offset,
+  aggregates = [],
+  groupByOptions = {},
+}) => {
   try {
     let query = `SELECT ${fields} FROM ${tableName}`;
     const joinClause = buildJoinClause(joins);
     query += ` ${joinClause}`;
 
-    const whereClause = buildWhereClause(filters);
+    const { clause: whereClause, values: filterValues } =
+      buildWhereClause(filters);
     query += ` ${whereClause}`;
 
     const groupByClause = buildGroupByClause(groupByOptions);
@@ -98,7 +113,8 @@ const selectQuery = async (
       query += ` OFFSET ${offset}`;
     }
 
-    const result = await pool.query(query);
+    // Execute the query with filter values
+    const result = await pool.query(query, filterValues);
     if (result.rows.length === 0) {
       throw new Error("SelectedRecordNotFound");
     }
@@ -110,30 +126,34 @@ const selectQuery = async (
 };
 
 
+
 const deleteRecords = async (
-  pool,
   tableName,
   filters = [],
   returnDeleted = false
 ) => {
   try {
     let deleteQuery = `DELETE FROM ${tableName}`;
+    let filterValues = [];
 
     // Only add WHERE clause if filters are provided
     if (filters.length > 0) {
-      const whereClause = buildWhereClause(filters);
+      const { clause: whereClause, values: whereValues } =
+        buildWhereClause(filters);
       if (!whereClause) {
         throw new Error("DeleteFilterMissing");
       }
       deleteQuery += ` ${whereClause}`;
+      filterValues = whereValues;
     }
 
     if (returnDeleted) {
       deleteQuery += " RETURNING *";
     }
 
-    const result = await pool.query(deleteQuery);
-    
+    // Execute the delete query with filter values
+    const result = await pool.query(deleteQuery, filterValues);
+
     if (filters.length > 0 && result.rowCount === 0) {
       throw new Error("RecordNotFound");
     }
@@ -146,7 +166,8 @@ const deleteRecords = async (
 };
 
 
-const countRecords = async (pool, tableName, filters = [], joins = []) => {
+
+const countRecords = async (tableName, filters = [], joins = []) => {
   try {
     let query = `SELECT COUNT(*) FROM ${tableName}`;
 

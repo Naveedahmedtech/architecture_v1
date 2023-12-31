@@ -1,4 +1,3 @@
-const pool = require("../../../config/db/db.connect");
 const { responseHandler } = require("../../common/apiResponseHandler");
 const { deleteRecords } = require("../helper/dbOperations");
 
@@ -13,7 +12,7 @@ exports.deleteOne = async (
   }
 ) => {
   try {
-    const deletedRecords = await deleteRecords(pool, tableName, filters, true);
+    const deletedRecords = await deleteRecords(tableName, filters, true);
 
     return responseHandler(res, 200, true, successMessage, {
       deletedRecord: deletedRecords[0],

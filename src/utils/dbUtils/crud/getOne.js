@@ -1,4 +1,3 @@
-const pool = require("../../../config/db/db.connect");
 const { responseHandler } = require("../../common/apiResponseHandler");
 const { selectQuery } = require("../helper/dbOperations");
 
@@ -17,7 +16,7 @@ exports.getOne = async (
   }
 ) => {
   try {
-    const records = await selectQuery(pool, {
+    const records = await selectQuery({
       tableName,
       fields,
       joins,

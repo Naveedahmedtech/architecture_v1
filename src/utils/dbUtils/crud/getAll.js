@@ -1,8 +1,6 @@
-const pool = require("../../../config/db/db.connect");
 const { responseHandler } = require("../../common/apiResponseHandler");
 const { getPaginationInfo } = require("../../common/pagination");
 const { selectQuery, countRecords } = require("../helper/dbOperations");
-
 
 exports.getAll = async (
   req,
@@ -13,27 +11,30 @@ exports.getAll = async (
     aggregates = [],
     joins = [],
     filters = [],
-    defaultSortField = "id",
     additionalOptions = {},
   }
 ) => {
   const page = parseInt(req.query.page, 10) || 1;
   const limit = parseInt(req.query.limit, 10) || 10;
   const offset = (page - 1) * limit;
-
+  const sortField = req.query.sortField || 'id'; 
+  const sortOrder = req.query.sortOrder 
+  || 'desc';
   try {
-    const records = await selectQuery(pool, {
+    const records = await selectQuery({
       tableName,
       fields,
       joins,
       filters,
+      sortField,
+      sortOrder,
       limit,
       offset,
       aggregates,
       groupByOptions: additionalOptions,
     });
 
-    const totalRows = await countRecords(pool, tableName, filters, joins);
+    const totalRows = await countRecords(tableName, filters, joins);
 
     return responseHandler(
       res,

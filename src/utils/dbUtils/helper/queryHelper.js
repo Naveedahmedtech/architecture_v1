@@ -4,13 +4,21 @@ const buildJoinClause = (joins) => {
     .join(" ");
 };
 
-const buildWhereClause = (filters) => {
-  if (!filters || filters.length === 0) return "";
+const buildWhereClause = (filters, startIndex = 0) => {
+  if (!filters || filters.length === 0) return { clause: "", values: [] };
+
   const filterClauses = filters.map(
-    (filter) => `${filter.field} ${filter.operator} ${filter.value}`
+    (filter, index) => `${filter.field} ${filter.operator} $${index + startIndex + 1}`
   );
-  return `WHERE ${filterClauses.join(" AND ")}`;
+  const filterValues = filters.map((filter) => filter.value);
+
+  return {
+    clause: `WHERE ${filterClauses.join(" AND ")}`,
+    values: filterValues,
+  };
 };
+
+
 
 const getSortClause = (sortField, sortOrder) => {
   sortOrder =

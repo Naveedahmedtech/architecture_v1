@@ -1,4 +1,3 @@
-const pool = require("../../../config/db/db.connect");
 const { responseHandler } = require("../../common/apiResponseHandler");
 const { updateRecord, selectQuery } = require("../helper/dbOperations");
 
@@ -11,14 +10,14 @@ exports.updateOne = async (
     filters = [],
     returnFields = "json_build_object('id', id) as result",
     joins = [],
-    notFoundMessage = "Record not found",
+    notFoundMessage = "Updated record not found",
     successMessage = "Record updated successfully",
   }
 ) => {
   try {
-    const updatedRecord = await updateRecord(pool, tableName, data, filters);
+    const updatedRecord = await updateRecord(tableName, data, filters);
 
-    const records = await selectQuery(pool, {
+    const records = await selectQuery({
       tableName: tableName,
       fields: returnFields,
       joins: joins,
@@ -28,7 +27,7 @@ exports.updateOne = async (
     });
 
     if (records.length === 0) {
-      return responseHandler(res, 404, false, "Updated record not found");
+      return responseHandler(res, 404, false, notFoundMessage);
     }
 
     return responseHandler(res, 200, true, successMessage, records[0]);
@@ -46,6 +45,13 @@ exports.updateOne = async (
           400,
           false,
           "No valid filter provided for update"
+        );
+      case "UpdateDatabaseQueryError":
+        return responseHandler(
+          res,
+          500,
+          false,
+          "Database query error during update"
         );
       default:
         console.error("Error updating record:", error);
