@@ -8,6 +8,9 @@ const checkRecord = require("../../../utils/dbUtils/helper/validationHelper");
 const { responseHandler } = require("../../../utils/common/apiResponseHandler");
 const { generateToken, verifyToken } = require("../../../lib/common/jwt");
 
+// TODO: include role for registration, login, forgotPassword, change password, reset password, verify code
+// TODO: make the verification code api for both forgot and email verification after registration 
+
 exports.register = async (req, res) => {
   const { full_name, email, password } = req.body;
 
@@ -26,6 +29,7 @@ exports.register = async (req, res) => {
     excludeFields: ["password"],
   });
 };
+
 
 exports.login = async (req, res) => {
   try {
