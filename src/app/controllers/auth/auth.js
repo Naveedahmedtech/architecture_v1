@@ -215,3 +215,12 @@ exports.socialLogin = async (req, res) => {
   }
 };
  
+
+exports.forgotPassword = async (req, res) => {
+  const { email, role } = req.body;
+  try {
+    
+  } catch (error) {
+    
+  }
+}
