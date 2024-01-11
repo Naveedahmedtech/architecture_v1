@@ -167,8 +167,6 @@ exports.socialLogin = async (req, res) => {
     } else {
       // Update user data
       const updatedUserData = { full_name };
-      console.log(email);
-      console.log("Updating User Data:", updatedUserData);
       user = await updateRecord("users", updatedUserData, [
         { field: "email", operator: "=", value: email },
       ]);
