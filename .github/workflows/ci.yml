@@ -1,0 +1,25 @@
+name: Node.js CI Development
+
+on:
+  push:
+    branches:
+      - development
+  pull_request:
+    branches:
+      - development
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '16.x'  # Replace with your Node.js version
+    - name: Set NODE_ENV to development
+      run: echo "NODE_ENV=development" >> $GITHUB_ENV
+    - run: npm ci
+    - run: npm run build
+    - run: npm test
