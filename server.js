@@ -5,12 +5,13 @@ const express = require("express");
 const path = require("path");
 const session = require("express-session");
 const passport = require("passport");
-const flash = require("connect-flash");
 
 // project files
 const pool = require("./src/config/db/db.connect");
 const initDatabase = require("./src/config/db/db.config");
-const apiRouter = require('./src/app/routes/api')
+const apiRouter = require('./src/app/routes/api');
+
+
 // Connect to the database
 pool.connect((err, client, release) => {
   if (err) {
@@ -35,15 +36,17 @@ app.use(
   session({
     secret: process.env.EXPRESS_SESSION_KEY, 
     resave: false,
-    saveUninitialized: true,
+    saveUninitialized: false,
   })
 );
 
-app.use(passport.initialize());
-app.use(passport.session());
+passport.serializeUser(function (user, done) {
+  done(null, user);
+});
 
-app.use(flash());
-
+passport.deserializeUser(function (user, done) {
+  done(null, user);
+});
 
 app.use("/api", apiRouter);
 

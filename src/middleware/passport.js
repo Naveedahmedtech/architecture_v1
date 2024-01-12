@@ -4,7 +4,13 @@ const passportConfig = require("../config/passport/passport.config");
 
 passport.use(
   new GoogleStrategy(passportConfig.googleAuth, function (issuer, profile, cb) {
-    console.log(profile);
+    try {
+      console.log("User profile", profile);
+      return cb(null, profile)
+      
+    } catch (error) {
+      return cb(null, error)
+    }
   })
 );
 
