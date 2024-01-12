@@ -14,6 +14,13 @@ const {
   checkRecord,
   recordExists,
 } = require("../../../utils/dbUtils/helper/validationHelper");
+const { setCookie } = require("../../../utils/common/cookieHandler");
+const {
+  ACCESS_TOKEN_EXPIRY_SECONDS,
+  MAX_AGE_REFRESH_TOKEN,
+  MAX_AGE_ACCESS_TOKEN,
+  REFRESH_TOKEN_EXPIRY_DAYS,
+} = require("../../../constants/auth");
 
 // TODO: include role for registration, login, forgotPassword, change password, reset password, verify code
 // TODO: make the verification code api for both forgot and email verification after registration
@@ -60,13 +67,17 @@ exports.login = async (req, res) => {
   try {
     const { email, password, role } = req.body;
 
-    const isAdmin = role === "admin" ? role : "user";
+    // Assuming the role should be either 'admin' or 'user'
+    const validRole = role === "admin" || role === "user" ? role : "user";
 
-    // Find user by email
+    // Find user by email and role
     const user = await checkRecord("users", [
       { field: "email", operator: "=", value: email },
-      { field: "role", operator: "=", value: isAdmin },
+      { field: "role", operator: "=", value: validRole },
     ]);
+    if (!user) {
+      return responseHandler(res, 404, false, "Invalid email or password");
+    }
 
     // Check if password matches
     const isMatch = await bcrypt.compare(password, user.password);
@@ -74,16 +85,34 @@ exports.login = async (req, res) => {
       return responseHandler(res, 401, false, "Invalid email or password");
     }
 
-    // Generate JWT token
-    const payload = { id: user.id, email: user.email, username: user.username };
-    const token = generateToken(payload);
+    // Generate JWT token with role
+    const payload = {
+      id: user.id,
+      email: user.email,
+      username: user.username,
+      role: user.role,
+    };
+    const token = generateToken(payload, ACCESS_TOKEN_EXPIRY_SECONDS);
 
     // Generate refresh token
     const refreshPayload = { id: user.id };
-    const refreshToken = generateToken(refreshPayload, "180d");
+    const refreshToken = generateToken(
+      refreshPayload,
+      REFRESH_TOKEN_EXPIRY_DAYS
+    );
+
+    setCookie(res, "token", token, MAX_AGE_ACCESS_TOKEN);
+    setCookie(res, "refreshToken", refreshToken, MAX_AGE_REFRESH_TOKEN);
+    setCookie(
+      res,
+      "expiresIn",
+      ACCESS_TOKEN_EXPIRY_SECONDS,
+      MAX_AGE_ACCESS_TOKEN
+    );
 
     return responseHandler(res, 201, true, "Login Successfully", {
       token,
+      expiresIn: ACCESS_TOKEN_EXPIRY_SECONDS,
       refreshToken,
     });
   } catch (error) {
@@ -93,7 +122,7 @@ exports.login = async (req, res) => {
       case "JWTGeneratorError":
         return responseHandler(res, 500, false, "Error creating token");
       default:
-        console.error("Error creating a new record:", error);
+        console.error("Error in login process:", error);
         return responseHandler(res, 500, false, "Internal Server Error");
     }
   }
@@ -212,13 +241,9 @@ exports.socialLogin = async (req, res) => {
     }
   }
 };
- 
 
 exports.forgotPassword = async (req, res) => {
   const { email, role } = req.body;
   try {
-    
-  } catch (error) {
-    
-  }
-}
+  } catch (error) {}
+};

@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const { JWT_SECRET } = require("../../constants/common");
+const { JWT_SECRET } = require("../../constants/auth");
 
 /**
  * Generates a JWT token for a user.
