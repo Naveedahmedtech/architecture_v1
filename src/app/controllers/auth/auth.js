@@ -27,7 +27,7 @@ const {
 
 exports.register = async (req, res) => {
   try {
-    const { full_name, email, password } = req.body;
+    const { full_name, email, password, role } = req.body;
 
     // Check if user already registered
     const userExists = await recordExists("users", [
@@ -43,6 +43,7 @@ exports.register = async (req, res) => {
         full_name: full_name,
         email: email,
         password: hashedPassword,
+        role: role || "user",
       };
 
       createOne(req, res, {
@@ -173,6 +174,12 @@ exports.refreshToken = async (req, res) => {
   }
 };
 
+/**
+ * social login -- Assuming login with social handling by frontend dev
+ * @param {*} req  provider, provider id, email, full name
+ * @param {*} res access tokens and refresh tokens
+ * @returns
+ */
 exports.socialLogin = async (req, res) => {
   try {
     const { email, full_name, provider, providerId } = req.body;
