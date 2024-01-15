@@ -16,6 +16,7 @@ const authGuard = async (req, res, next) => {
     const token = authHeader.split(" ")[1];
 
     const decoded = verifyToken(token);
+    // TODO: If token is valid then check user existence in the database -- more secure 
     req.user = decoded;
 
     next();

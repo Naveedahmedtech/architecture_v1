@@ -115,9 +115,9 @@ const selectQuery = async ({
 
     // Execute the query with filter values
     const result = await pool.query(query, filterValues);
-    if (result.rows.length === 0) {
-      throw new Error("SelectedRecordNotFound");
-    }
+    // if (result.rows.length === 0) {
+    //   throw new Error("SelectedRecordNotFound");
+    // }
     return result.rows;
   } catch (error) {
     console.error(`Error executing query: ${error.message}`);

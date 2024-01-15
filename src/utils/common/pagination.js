@@ -3,6 +3,7 @@ const getPaginationInfo = (totalRows, page, limit) => {
     totalItems: totalRows,
     totalPages: Math.ceil(totalRows / limit),
     currentPage: page,
+    itemsPerPage: limit,
   };
 };
 
