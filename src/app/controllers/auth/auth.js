@@ -1,8 +1,7 @@
 // project external files
-const bcrypt = require("bcryptjs");
 
 // project files
-const { hashPassword } = require("../../../lib/common/bcrypt");
+const { hashPassword, verifyPassword } = require("../../../lib/common/bcrypt");
 const { createOne } = require("../../../utils/dbUtils/crud/createOne");
 const { responseHandler } = require("../../../utils/common/apiResponseHandler");
 const { generateToken, verifyToken } = require("../../../lib/common/jwt");
@@ -46,7 +45,7 @@ exports.register = async (req, res) => {
         role: role || "user",
       };
 
-      createOne(req, res, {
+      await createOne(req, res, {
         tableName: "users",
         data: data,
         returnFields: "*",
@@ -81,7 +80,7 @@ exports.login = async (req, res) => {
     }
 
     // Check if password matches
-    const isMatch = await bcrypt.compare(password, user.password);
+    const isMatch = await verifyPassword(password, user.password);
     if (!isMatch) {
       return responseHandler(res, 401, false, "Invalid email or password");
     }
