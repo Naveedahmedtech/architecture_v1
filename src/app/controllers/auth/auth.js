@@ -34,7 +34,7 @@ exports.register = async (req, res) => {
     ]);
 
     if (userExists) {
-      return responseHandler(res, 409, false, "User already exists");
+      return responseHandler(res, 409, true, "User already exists");
     } else {
       const hashedPassword = await hashPassword(password);
 
@@ -55,10 +55,10 @@ exports.register = async (req, res) => {
   } catch (error) {
     switch (error.message) {
       case "DatabaseQueryError":
-        return responseHandler(res, 500, false, "Database query error");
+        return responseHandler(res, 500, true, "Database query error");
       default:
         console.error("Registration Error:", error);
-        return responseHandler(res, 500, false, "Internal Server Error");
+        return responseHandler(res, 500, true, "Internal Server Error");
     }
   }
 };
@@ -76,13 +76,13 @@ exports.login = async (req, res) => {
       { field: "role", operator: "=", value: validRole },
     ]);
     if (!user) {
-      return responseHandler(res, 404, false, "Invalid email or password");
+      return responseHandler(res, 404, true, "Invalid email or password");
     }
 
     // Check if password matches
     const isMatch = await verifyPassword(password, user.password);
     if (!isMatch) {
-      return responseHandler(res, 401, false, "Invalid email or password");
+      return responseHandler(res, 401, true, "Invalid email or password");
     }
 
     // Generate JWT token with role
@@ -110,7 +110,7 @@ exports.login = async (req, res) => {
       MAX_AGE_ACCESS_TOKEN
     );
 
-    return responseHandler(res, 201, true, "Login Successfully", {
+    return responseHandler(res, 201, false, "Login Successfully", {
       token,
       expiresIn: ACCESS_TOKEN_EXPIRY_SECONDS,
       refreshToken,
@@ -118,12 +118,14 @@ exports.login = async (req, res) => {
   } catch (error) {
     switch (error.message) {
       case "RecordNotFound":
-        return responseHandler(res, 404, false, "Invalid email or password");
+        return responseHandler(res, 404, true, "Invalid email or password");
       case "JWTGeneratorError":
-        return responseHandler(res, 500, false, "Error creating token");
+        return responseHandler(res, 500, true, "Error creating token");
+      case "DatabaseQueryError":
+        return responseHandler(res, 500, true, "Internal Server Error");
       default:
         console.error("Error in login process:", error);
-        return responseHandler(res, 500, false, "Internal Server Error");
+        return responseHandler(res, 500, true, "Internal Server Error");
     }
   }
 };
@@ -135,7 +137,7 @@ exports.refreshToken = async (req, res) => {
     // Verify the refresh token
     const decoded = verifyToken(refreshToken);
     if (!decoded) {
-      return responseHandler(res, 403, false, "Invalid refresh token");
+      return responseHandler(res, 403, true, "Invalid refresh token");
     }
 
     // Check if the user still exists
@@ -151,24 +153,26 @@ exports.refreshToken = async (req, res) => {
     };
     const newAccessToken = generateToken(accessPayload);
 
-    return responseHandler(res, 200, true, "New token generated successfully", {
+    return responseHandler(res, 200, false, "New token generated successfully", {
       accessToken: newAccessToken,
     });
   } catch (error) {
     switch (error.message) {
       case "RecordNotFound":
-        return responseHandler(res, 401, false, "Invalid authentication token");
+        return responseHandler(res, 401, true, "Invalid authentication token");
       case "JWTVerificationError":
         const isExpiredError = error instanceof jwt.TokenExpiredError;
         return responseHandler(
           res,
           isExpiredError ? 403 : 401,
-          false,
+          true,
           isExpiredError ? "Token has expired" : "Invalid authentication token"
         );
+      case "DatabaseQueryError":
+        return responseHandler(res, 500, true, "Internal Server Error");
       default:
         console.error("Error creating a new record:", error);
-        return responseHandler(res, 500, false, "Internal Server Error");
+        return responseHandler(res, 500, true, "Internal Server Error");
     }
   }
 };
@@ -215,35 +219,35 @@ exports.socialLogin = async (req, res) => {
     const refreshPayload = { id: user.id };
     const refreshToken = generateToken(refreshPayload, "180d");
 
-    return responseHandler(res, 201, true, "Login successful", {
+    return responseHandler(res, 201, false, "Login successful", {
       token,
       refreshToken,
     });
   } catch (error) {
     switch (error.message) {
       case "DatabaseQueryError":
-        return responseHandler(res, 500, false, "Database query error");
+        return responseHandler(res, 500, true, "Database query error");
       case "UpdateDataMissing":
-        return responseHandler(res, 400, false, "No update data provided");
+        return responseHandler(res, 400, true, "No update data provided");
       case "UpdateFilterMissing":
         return responseHandler(
           res,
           400,
-          false,
+          true,
           "No valid filter provided for update"
         );
       case "RecordNotFound":
-        return responseHandler(res, 404, false, "Record not found");
+        return responseHandler(res, 404, true, "Record not found");
       case "UpdateDatabaseQueryError":
         return responseHandler(
           res,
           500,
-          false,
+          true,
           "Database query error during update"
         );
       default:
         console.error("Registration Error:", error);
-        return responseHandler(res, 500, false, "Internal Server Error");
+        return responseHandler(res, 500, true, "Internal Server Error");
     }
   }
 };

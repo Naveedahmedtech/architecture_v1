@@ -41,22 +41,16 @@ exports.getAll = async (
     paginationInfo.hasNextPage = hasNextPage;
 
     if (page > totalPages) {
-      return responseHandler(
-        res,
-        404,
-        false,
-        "Requested page number exceeds total pages",
-        {
-          paginationInfo,
-          data: [],
-        }
-      );
+      return responseHandler(res, 404, true, "Requested records not found", {
+        paginationInfo,
+        data: [],
+      });
     }
 
     return responseHandler(
       res,
       200,
-      true,
+      false,
       `${tableName} records retrieved successfully!`,
       {
         paginationInfo,
@@ -66,10 +60,10 @@ exports.getAll = async (
   } catch (error) {
     switch (error.message) {
       case "SelectedRecordNotFound":
-        return responseHandler(res, 404, false, "No records found");
+        return responseHandler(res, 404, true, "No records found");
       default:
         console.error("Error fetching records:", error);
-        return responseHandler(res, 500, false, "Internal Server Error");
+        return responseHandler(res, 500, true, "Internal Server Error");
     }
   }
 };

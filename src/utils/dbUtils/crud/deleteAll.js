@@ -15,12 +15,12 @@ exports.deleteAll = async (
     const count = await countRecords(tableName, filters);
 
     if (count === 0) {
-      return responseHandler(res, 404, false, notFoundMessage);
+      return responseHandler(res, 404, true, notFoundMessage);
     }
 
     const deletedRecords = await deleteRecords(tableName, filters, true);
 
-    return responseHandler(res, 200, true, successMessage, {
+    return responseHandler(res, 200, false, successMessage, {
       deletedCount: count, 
       deletedRecords: deletedRecords,
     });
@@ -30,12 +30,12 @@ exports.deleteAll = async (
         return responseHandler(
           res,
           400,
-          false,
+          true,
           "No valid filter provided for deletion"
         );
       default:
         console.error("Error deleting records:", error);
-        return responseHandler(res, 500, false, "Internal Server Error");
+        return responseHandler(res, 500, true, "Internal Server Error");
     }
   }
 };

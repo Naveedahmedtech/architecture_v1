@@ -8,7 +8,7 @@ exports.updateOne = async (
     tableName,
     data,
     filters = [],
-    returnFields = "json_build_object('id', id) as result",
+    returnFields = "*",
     joins = [],
     notFoundMessage = "Updated record not found",
     successMessage = "Record updated successfully",
@@ -27,35 +27,35 @@ exports.updateOne = async (
     });
 
     if (records.length === 0) {
-      return responseHandler(res, 404, false, notFoundMessage);
+      return responseHandler(res, 404, true, notFoundMessage);
     }
 
-    return responseHandler(res, 200, true, successMessage, records[0]);
+    return responseHandler(res, 200, false, successMessage, records[0]);
   } catch (error) {
     switch (error.message) {
       case "RecordNotFound":
-        return responseHandler(res, 404, false, "Record not found");
+        return responseHandler(res, 404, true, "Record not found");
       case "SelectedRecordNotFound":
-        return responseHandler(res, 404, false, "Selected Record not found");
+        return responseHandler(res, 404, true, "Selected Record not found");
       case "UpdateDataMissing":
-        return responseHandler(res, 400, false, "No update data provided");
+        return responseHandler(res, 400, true, "No update data provided");
       case "UpdateFilterMissing":
         return responseHandler(
           res,
           400,
-          false,
+          true,
           "No valid filter provided for update"
         );
       case "UpdateDatabaseQueryError":
         return responseHandler(
           res,
           500,
-          false,
+          true,
           "Database query error during update"
         );
       default:
         console.error("Error updating record:", error);
-        return responseHandler(res, 500, false, "Internal Server Error");
+        return responseHandler(res, 500, true, "Internal Server Error");
     }
   }
 };

@@ -14,7 +14,7 @@ exports.deleteOne = async (
   try {
     const deletedRecords = await deleteRecords(tableName, filters, true);
 
-    return responseHandler(res, 200, true, successMessage, {
+    return responseHandler(res, 200, false, successMessage, {
       deletedRecord: deletedRecords[0],
     });
   } catch (error) {
@@ -23,14 +23,14 @@ exports.deleteOne = async (
         return responseHandler(
           res,
           400,
-          false,
+          true,
           "No valid filter provided for deletion"
         );
       case "RecordNotFound":
-        return responseHandler(res, 404, false, notFoundMessage);
+        return responseHandler(res, 404, true, notFoundMessage);
       default:
         console.error("Error deleting record:", error);
-        return responseHandler(res, 500, false, "Internal Server Error");
+        return responseHandler(res, 500, true, "Internal Server Error");
     }
   }
 };

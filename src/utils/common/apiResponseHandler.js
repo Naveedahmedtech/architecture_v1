@@ -1,7 +1,8 @@
 const responseHandler = (res, status, success, message, result = null) => {
   const response = {
-    status: success,
-    message: message,
+    code: status,
+    error: success,
+    detail: message,
   };
 
   if (result) response.result = result;

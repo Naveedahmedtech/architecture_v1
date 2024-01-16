@@ -31,17 +31,17 @@ exports.getOne = async (
     return responseHandler(
       res,
       200,
-      true,
+      false,
       "Record retrieved successfully",
       records[0]
     );
   } catch (error) {
     switch (error.message) {
       case "SelectedRecordNotFound":
-        return responseHandler(res, 404, false, "No records found");
+        return responseHandler(res, 404, true, "No records found");
       default:
         console.error("Error fetching records:", error);
-        return responseHandler(res, 500, false, "Internal Server Error");
+        return responseHandler(res, 500, true, "Internal Server Error");
     }
   }
 };

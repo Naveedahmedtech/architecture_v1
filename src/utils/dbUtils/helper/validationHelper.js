@@ -23,7 +23,7 @@ const checkRecord = async (tableName, filters) => {
     return result.rows[0];
   } catch (error) {
     console.error(`Error checking record in ${tableName}:`, error.message);
-    throw error;
+    throw new Error("DatabaseQueryError");
   }
 };
 

@@ -37,26 +37,26 @@ exports.createOne = async (
       excludeFields,
     });
 
-    return responseHandler(res, 201, true, successMessage, records);
+    return responseHandler(res, 201, false, successMessage, records);
   } catch (error) {
     switch (error.message) {
       case "InsertDataMissing":
         return responseHandler(
           res,
           400,
-          false,
+          true,
           "No data provided for the new record"
         );
       case "InsertOperationFailed":
         return responseHandler(
           res,
           400,
-          false,
+          true,
           "Failed to create a new record"
         );
       default:
         console.error("Error creating a new record:", error);
-        return responseHandler(res, 500, false, "Internal Server Error");
+        return responseHandler(res, 500, true, "Internal Server Error");
     }
   }
 };

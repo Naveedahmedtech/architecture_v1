@@ -6,6 +6,10 @@ const router = express.Router();
 const userController = require("../../controllers/users/users");
 const authGuard = require("../../../middleware/authGaurd");
 
-router.get("/getAll", authGuard, userController.getAll);
+router.get("/get/:id", userController.get);
+router.get("/getAll", userController.getAll);
+router.patch("/updateProfile", userController.updateProfile);
+router.delete("/delete/:id", userController.delete)
+router.delete("/deleteAll", userController.deleteAll)
 
 module.exports = router;
