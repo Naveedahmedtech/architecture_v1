@@ -4,14 +4,14 @@ const router = express.Router();
 
 
 // controller
-const authController = require("../../controllers/auth/auth");
+const authController = require("../../../controllers/v1/auth/auth");
 
 // middlewares
-const validateRequest = require("../../../middleware/validator");
-const passport = require("../../../middleware/passport");
+const validateRequest = require("../../../../middleware/validator");
+const passport = require("../../../../middleware/passport");
 
 // validations
-const schemas = require("../../../lib/validations/bodyValidation");
+const schemas = require("../../../../lib/validations/bodyValidation");
 
 
 

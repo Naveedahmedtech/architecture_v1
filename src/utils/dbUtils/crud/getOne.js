@@ -1,3 +1,4 @@
+const { ERROR_MSGS } = require("../../../constants/common");
 const { responseHandler } = require("../../common/apiResponseHandler");
 const { selectQuery } = require("../helper/dbOperations");
 
@@ -24,11 +25,12 @@ exports.getOne = async (
       sortField,
       sortOrder,
       limit: 1,
-      aggregates: [], 
+      aggregates: [],
       groupByOptions: additionalOptions,
     });
 
     return responseHandler(
+      req,
       res,
       200,
       true,
@@ -38,10 +40,12 @@ exports.getOne = async (
   } catch (error) {
     switch (error.message) {
       case "SelectedRecordNotFound":
-        return responseHandler(res, 404, false, "No records found");
+        throw new Error("SelectedRecordNotFound");
+      case "DB_Error":
+        throw new Error(ERROR_MSGS.INTERNAL_SERVER_ERROR);
       default:
         console.error("Error fetching records:", error);
-        return responseHandler(res, 500, false, "Internal Server Error");
+        throw new Error(ERROR_MSGS.INTERNAL_SERVER_ERROR);
     }
   }
 };

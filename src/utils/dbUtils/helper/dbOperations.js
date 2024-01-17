@@ -1,5 +1,12 @@
 const pool = require("../../../config/db/db.connect");
-const { buildWhereClause, buildJoinClause, buildGroupByClause, buildAggregateClause, getSortClause } = require("./queryHelper");
+const { logger } = require("../../../config/logger/logger.config");
+const {
+  buildWhereClause,
+  buildJoinClause,
+  buildGroupByClause,
+  buildAggregateClause,
+  getSortClause,
+} = require("./queryHelper");
 
 const insertRecord = async (tableName, data) => {
   if (!data || Object.keys(data).length === 0) {
@@ -22,7 +29,7 @@ const insertRecord = async (tableName, data) => {
 
     return insertResult.rows[0].id;
   } catch (error) {
-    console.log(error);
+    logger.error(error);
     throw new Error("InsertOperationFailed");
   }
 };
@@ -51,21 +58,22 @@ const updateRecord = async (tableName, data, filters) => {
     const updateQuery = `UPDATE ${tableName} SET ${updates} ${whereClause} RETURNING *`;
     const updateResult = await pool.query(updateQuery, combinedValues);
 
-    if (updateResult.rowCount === 0) {
-      throw new Error("RecordNotFound");
-    }
+    // if (updateResult.rowCount === 0) {
+    //   throw new Error("RecordNotFound");
+    // }
 
     return updateResult.rows[0];
   } catch (error) {
-    console.error(`Error updating record in ${tableName}:`, error.message);
-    throw new Error("UpdateDatabaseQueryError"); 
+    switch (error.message) {
+      case "RecordNotFound":
+        throw new Error("RecordNotFound");
+        break;
+      default:
+        logger.error(`Error checking record in ${tableName}:`, error);
+        throw new Error("UpdateDatabaseQueryError");
+    }
   }
 };
-
-
-
-
-
 
 const selectQuery = async ({
   tableName,
@@ -116,20 +124,23 @@ const selectQuery = async ({
     // Execute the query with filter values
     const result = await pool.query(query, filterValues);
 
+    if (result.rowCount === 0) {
+      throw new Error("SelectedRecordNotFound");
+    }
+
     return result.rows;
   } catch (error) {
-    console.error(`Error executing query: ${error.message}`);
-    throw error;
+    switch (error.message) {
+      case "SelectedRecordNotFound":
+        throw new Error("SelectedRecordNotFound");
+      default:
+        console.error("Error fetching records:", error);
+        throw new Error("DB_ERROR");
+    }
   }
 };
 
-
-
-const deleteRecords = async (
-  tableName,
-  filters = [],
-  returnDeleted = false
-) => {
+const deleteRecords = async (tableName, filters = [], returnDeleted = true) => {
   try {
     let deleteQuery = `DELETE FROM ${tableName}`;
     let filterValues = [];
@@ -158,12 +169,15 @@ const deleteRecords = async (
 
     return returnDeleted ? result.rows : [];
   } catch (error) {
-    console.error(`Error deleting records from ${tableName}: ${error.message}`);
-    throw error;
+    switch (error.message) {
+      case "RecordNotFound":
+        throw new Error("RecordNotFound");
+      default:
+        console.error("Error fetching records:", error);
+        throw new Error("DB_ERROR");
+    }
   }
 };
-
-
 
 const countRecords = async (tableName, filters = [], joins = []) => {
   try {
@@ -187,7 +201,7 @@ const countRecords = async (tableName, filters = [], joins = []) => {
     return parseInt(result.rows[0].count, 10);
   } catch (error) {
     console.error(`Error counting records in ${tableName}: ${error.message}`);
-    throw error;
+    throw new Error("DB_ERROR");
   }
 };
 

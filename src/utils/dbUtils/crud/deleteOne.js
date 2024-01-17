@@ -1,3 +1,4 @@
+const { ERROR_MSGS } = require("../../../constants/common");
 const { responseHandler } = require("../../common/apiResponseHandler");
 const { deleteRecords } = require("../helper/dbOperations");
 
@@ -12,25 +13,22 @@ exports.deleteOne = async (
   }
 ) => {
   try {
-    const deletedRecords = await deleteRecords(tableName, filters, true);
+    const deletedRecords = await deleteRecords(tableName, filters);
 
-    return responseHandler(res, 200, true, successMessage, {
+    return responseHandler(req, res, 200, true, successMessage, {
       deletedRecord: deletedRecords[0],
     });
   } catch (error) {
     switch (error.message) {
       case "DeleteFilterMissing":
-        return responseHandler(
-          res,
-          400,
-          false,
-          "No valid filter provided for deletion"
-        );
+        throw new Error("DeleteFilterMissing");
       case "RecordNotFound":
-        return responseHandler(res, 404, false, notFoundMessage);
+        throw new Error("RecordNotFound");
+      case "DB_ERROR":
+        throw new Error(ERROR_MSGS.INTERNAL_SERVER_ERROR);
       default:
         console.error("Error deleting record:", error);
-        return responseHandler(res, 500, false, "Internal Server Error");
+        throw new Error(ERROR_MSGS.INTERNAL_SERVER_ERROR);
     }
   }
 };

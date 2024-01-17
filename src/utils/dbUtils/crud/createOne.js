@@ -1,7 +1,6 @@
 const { responseHandler } = require("../../common/apiResponseHandler");
 const { insertRecord, selectQuery } = require("../helper/dbOperations");
 
-
 exports.createOne = async (
   req,
   res,
@@ -18,8 +17,6 @@ exports.createOne = async (
     groupByOptions = {},
   }
 ) => {
-  console.log(excludeFields);
-
   try {
     const newRecordId = await insertRecord(tableName, data);
 
@@ -37,11 +34,12 @@ exports.createOne = async (
       excludeFields,
     });
 
-    return responseHandler(res, 201, true, successMessage, records);
+    return responseHandler(req, res, 201, true, successMessage, records);
   } catch (error) {
     switch (error.message) {
       case "InsertDataMissing":
         return responseHandler(
+          req,
           res,
           400,
           false,
@@ -49,6 +47,7 @@ exports.createOne = async (
         );
       case "InsertOperationFailed":
         return responseHandler(
+          req,
           res,
           400,
           false,
@@ -56,7 +55,7 @@ exports.createOne = async (
         );
       default:
         console.error("Error creating a new record:", error);
-        return responseHandler(res, 500, false, "Internal Server Error");
+        return responseHandler(req, res, 500, false, "Internal Server Error");
     }
   }
 };

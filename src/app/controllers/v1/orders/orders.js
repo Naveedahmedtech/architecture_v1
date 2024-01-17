@@ -1,10 +1,10 @@
-const { responseHandler } = require("../../../utils/common/apiResponseHandler");
-const { createOne } = require("../../../utils/dbUtils/crud/createOne");
-const { deleteAll } = require("../../../utils/dbUtils/crud/deleteAll");
-const { deleteOne } = require("../../../utils/dbUtils/crud/deleteOne");
-const { getAll } = require("../../../utils/dbUtils/crud/getAll");
-const { getOne } = require("../../../utils/dbUtils/crud/getOne");
-const { updateOne } = require("../../../utils/dbUtils/crud/updateOne");
+const { responseHandler } = require("../../../../utils/common/apiResponseHandler");
+const { createOne } = require("../../../../utils/dbUtils/crud/createOne");
+const { deleteAll } = require("../../../../utils/dbUtils/crud/deleteAll");
+const { deleteOne } = require("../../../../utils/dbUtils/crud/deleteOne");
+const { getAll } = require("../../../../utils/dbUtils/crud/getAll");
+const { getOne } = require("../../../../utils/dbUtils/crud/getOne");
+const { updateOne } = require("../../../../utils/dbUtils/crud/updateOne");
 
 exports.createOrders = async (req, res) => {
   await createOne(req, res, {

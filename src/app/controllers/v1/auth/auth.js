@@ -1,64 +1,85 @@
 // project external files
 
 // project files
-const { hashPassword, verifyPassword } = require("../../../lib/common/bcrypt");
-const { createOne } = require("../../../utils/dbUtils/crud/createOne");
-const { responseHandler } = require("../../../utils/common/apiResponseHandler");
-const { generateToken, verifyToken } = require("../../../lib/common/jwt");
+const {
+  hashPassword,
+  verifyPassword,
+} = require("../../../../lib/common/bcrypt");
+const { createOne } = require("../../../../utils/dbUtils/crud/createOne");
+const {
+  responseHandler,
+} = require("../../../../utils/common/apiResponseHandler");
+const { generateToken, verifyToken } = require("../../../../lib/common/jwt");
 const {
   insertRecord,
   updateRecord,
-} = require("../../../utils/dbUtils/helper/dbOperations");
+} = require("../../../../utils/dbUtils/helper/dbOperations");
 const {
   checkRecord,
   recordExists,
-} = require("../../../utils/dbUtils/helper/validationHelper");
-const { setCookie } = require("../../../utils/common/cookieHandler");
+} = require("../../../../utils/dbUtils/helper/validationHelper");
+const { setCookie } = require("../../../../utils/common/cookieHandler");
 const {
   ACCESS_TOKEN_EXPIRY_SECONDS,
   MAX_AGE_REFRESH_TOKEN,
   MAX_AGE_ACCESS_TOKEN,
   REFRESH_TOKEN_EXPIRY_DAYS,
-} = require("../../../constants/auth");
+} = require("../../../../constants/auth");
+const { logger } = require("../../../../config/logger/logger.config");
+const { ERROR_MSGS } = require("../../../../constants/common");
 
 // TODO: include role for registration, login, forgotPassword, change password, reset password, verify code
 // TODO: make the verification code api for both forgot and email verification after registration
+
+// TODO: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// TODO: MODIFY THE RESPONSE
 
 exports.register = async (req, res) => {
   try {
     const { full_name, email, password, role } = req.body;
 
     // Check if user already registered
-    const userExists = await recordExists("users", [
+    await recordExists("users", [
       { field: "email", operator: "=", value: email },
     ]);
+    const hashedPassword = await hashPassword(password);
 
-    if (userExists) {
-      return responseHandler(res, 409, false, "User already exists");
-    } else {
-      const hashedPassword = await hashPassword(password);
+    const data = {
+      full_name: full_name,
+      email: email,
+      password: hashedPassword,
+      role: role || "user",
+    };
 
-      const data = {
-        full_name: full_name,
-        email: email,
-        password: hashedPassword,
-        role: role || "user",
-      };
-
-      await createOne(req, res, {
-        tableName: "users",
-        data: data,
-        returnFields: "*",
-        excludeFields: ["password"],
-      });
-    }
+    await createOne(req, res, {
+      tableName: "users",
+      data: data,
+      returnFields: "*",
+      excludeFields: ["password"],
+    });
   } catch (error) {
     switch (error.message) {
+      case "ALREADY_EXISTS":
+        logger.error("ALREADY_EXISTS Error:", error);
+        return responseHandler(req, res, 409, false, ERROR_MSGS.ALREADY_EXISTS);
       case "DatabaseQueryError":
-        return responseHandler(res, 500, false, "Database query error");
+        logger.error("DatabaseQuery Error:", error);
+        return responseHandler(
+          req,
+          res,
+          500,
+          false,
+          ERROR_MSGS.INTERNAL_SERVER_ERROR
+        );
       default:
-        console.error("Registration Error:", error);
-        return responseHandler(res, 500, false, "Internal Server Error");
+        logger.error("Registration Error:", error);
+        return responseHandler(
+          req,
+          res,
+          500,
+          false,
+          ERROR_MSGS.INTERNAL_SERVER_ERROR
+        );
     }
   }
 };
@@ -75,14 +96,16 @@ exports.login = async (req, res) => {
       { field: "email", operator: "=", value: email },
       { field: "role", operator: "=", value: validRole },
     ]);
-    if (!user) {
-      return responseHandler(res, 404, false, "Invalid email or password");
-    }
-
     // Check if password matches
     const isMatch = await verifyPassword(password, user.password);
     if (!isMatch) {
-      return responseHandler(res, 401, false, "Invalid email or password");
+      return responseHandler(
+        req,
+        res,
+        401,
+        false,
+        ERROR_MSGS.INVALID_CREDENTIALS
+      );
     }
 
     // Generate JWT token with role
@@ -110,20 +133,28 @@ exports.login = async (req, res) => {
       MAX_AGE_ACCESS_TOKEN
     );
 
-    return responseHandler(res, 201, true, "Login Successfully", {
+    return responseHandler(req, res, 200, true, "Login Successfully", {
       token,
-      expiresIn: ACCESS_TOKEN_EXPIRY_SECONDS,
       refreshToken,
+      expiresIn: ACCESS_TOKEN_EXPIRY_SECONDS,
     });
   } catch (error) {
     switch (error.message) {
       case "RecordNotFound":
-        return responseHandler(res, 404, false, "Invalid email or password");
+        return responseHandler(
+          req,
+          res,
+          401,
+          false,
+          ERROR_MSGS.INVALID_CREDENTIALS
+        );
+        break;
       case "JWTGeneratorError":
-        return responseHandler(res, 500, false, "Error creating token");
+        return responseHandler(req, res, 500, false, "Error creating token");
+        break;
       default:
         console.error("Error in login process:", error);
-        return responseHandler(res, 500, false, "Internal Server Error");
+        return responseHandler(req, res, 500, false, "Internal Server Error");
     }
   }
 };

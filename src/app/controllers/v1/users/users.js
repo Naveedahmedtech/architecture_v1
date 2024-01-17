@@ -2,7 +2,7 @@
 
 // project files
 
-const { getAll } = require("../../../utils/dbUtils/crud/getAll");
+const { getAll } = require("../../../../utils/dbUtils/crud/getAll");
 
 exports.getAll = async (req, res) => {
   try {

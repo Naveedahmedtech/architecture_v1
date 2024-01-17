@@ -1,3 +1,4 @@
+const { ERROR_MSGS } = require("../../../constants/common");
 const { responseHandler } = require("../../common/apiResponseHandler");
 const { updateRecord, selectQuery } = require("../helper/dbOperations");
 
@@ -8,7 +9,7 @@ exports.updateOne = async (
     tableName,
     data,
     filters = [],
-    returnFields = "json_build_object('id', id) as result",
+    returnFields = "*",
     joins = [],
     notFoundMessage = "Updated record not found",
     successMessage = "Record updated successfully",
@@ -26,36 +27,26 @@ exports.updateOne = async (
       ],
     });
 
-    if (records.length === 0) {
-      return responseHandler(res, 404, false, notFoundMessage);
-    }
+    // if (records.length === 0) {
+    //   return responseHandler(req, res, 404, false, notFoundMessage);
+    // }
 
-    return responseHandler(res, 200, true, successMessage, records[0]);
+    return responseHandler(req, res, 200, true, successMessage, records[0]);
   } catch (error) {
     switch (error.message) {
       case "RecordNotFound":
-        return responseHandler(res, 404, false, "Record not found");
+        throw new Error("RecordNotFound");
       case "SelectedRecordNotFound":
-        return responseHandler(res, 404, false, "Selected Record not found");
+        throw new Error("SelectedRecordNotFound");
       case "UpdateDataMissing":
-        return responseHandler(res, 400, false, "No update data provided");
+        throw new Error("UpdateDataMissing");
       case "UpdateFilterMissing":
-        return responseHandler(
-          res,
-          400,
-          false,
-          "No valid filter provided for update"
-        );
+        throw new Error("UpdateFilterMissing");
+
       case "UpdateDatabaseQueryError":
-        return responseHandler(
-          res,
-          500,
-          false,
-          "Database query error during update"
-        );
+        throw new Error("UpdateDatabaseQueryError");
       default:
-        console.error("Error updating record:", error);
-        return responseHandler(res, 500, false, "Internal Server Error");
+        throw new Error(ERROR_MSGS.INTERNAL_SERVER_ERROR);
     }
   }
 };

@@ -1,4 +1,5 @@
 const pool = require("../../../config/db/db.connect");
+const { logger } = require("../../../config/logger/logger.config");
 
 const checkRecord = async (tableName, filters) => {
   try {
@@ -22,15 +23,20 @@ const checkRecord = async (tableName, filters) => {
 
     return result.rows[0];
   } catch (error) {
-    console.error(`Error checking record in ${tableName}:`, error.message);
-    throw error;
+    switch (error.message) {
+      case "RecordNotFound":
+        throw new Error("RecordNotFound");
+        break;
+      default:
+        logger.error(`Error checking record in ${tableName}:`, error);
+        throw new Error("DatabaseQueryError");
+    }
   }
 };
 
-
 const recordExists = async (tableName, filters) => {
   try {
-    let queryText = `SELECT EXISTS(SELECT 1 FROM ${tableName}`;
+    let queryText = `SELECT EXISTS(SELECT * FROM ${tableName}`;
     let queryValues = [];
 
     if (Array.isArray(filters) && filters.length > 0) {
@@ -45,19 +51,23 @@ const recordExists = async (tableName, filters) => {
     queryText += ")";
 
     const result = await pool.query(queryText, queryValues);
-    return result.rows[0].exists;
+    if (result.rows[0].exists) {
+      throw new Error("ALREADY_EXISTS");
+    }
+    return result.rows[0];
   } catch (error) {
-    console.error(
-      `Error executing exists check in ${tableName}:`,
-      error.message
-    );
-    throw new Error("DatabaseQueryError");
+    switch (error.message) {
+      case "ALREADY_EXISTS":
+        throw new Error("ALREADY_EXISTS");
+        break;
+      default:
+        logger.error(`Error checking record in ${tableName}:`, error);
+        throw new Error("DatabaseQueryError");
+    }
   }
-}; 
-
-
+};
 
 module.exports = {
   checkRecord,
-  recordExists
+  recordExists,
 };

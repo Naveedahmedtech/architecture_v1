@@ -1,3 +1,4 @@
+const { ERROR_MSGS } = require("../../../constants/common");
 const { responseHandler } = require("../../common/apiResponseHandler");
 const { getPaginationInfo } = require("../../common/pagination");
 const { selectQuery, countRecords } = require("../helper/dbOperations");
@@ -19,6 +20,7 @@ exports.getAll = async (
   const offset = (page - 1) * limit;
   const sortField = req.query.sortField || "id";
   const sortOrder = req.query.sortOrder || "desc";
+  let paginationInfo;
   try {
     const records = await selectQuery({
       tableName,
@@ -37,23 +39,11 @@ exports.getAll = async (
     const totalPages = Math.ceil(totalRows / limit);
     const hasNextPage = page < totalPages;
 
-    const paginationInfo = getPaginationInfo(totalRows, page, limit);
+    paginationInfo = getPaginationInfo(totalRows, page, limit);
     paginationInfo.hasNextPage = hasNextPage;
 
-    if (page > totalPages) {
-      return responseHandler(
-        res,
-        404,
-        false,
-        "Requested page number exceeds total pages",
-        {
-          paginationInfo,
-          data: [],
-        }
-      );
-    }
-
     return responseHandler(
+      req,
       res,
       200,
       true,
@@ -66,10 +56,21 @@ exports.getAll = async (
   } catch (error) {
     switch (error.message) {
       case "SelectedRecordNotFound":
-        return responseHandler(res, 404, false, "No records found");
+        return responseHandler(
+          req,
+          res,
+          200,
+          true,
+          ERROR_MSGS.RECORD_NOT_FOUND,
+          {
+            paginationInfo,
+            data: [],
+          }
+        );
+      // throw new Error("SelectedRecordNotFound");
       default:
         console.error("Error fetching records:", error);
-        return responseHandler(res, 500, false, "Internal Server Error");
+        throw new Error(ERROR_MSGS.INTERNAL_SERVER_ERROR);
     }
   }
 };

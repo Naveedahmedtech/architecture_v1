@@ -5,12 +5,15 @@ const express = require("express");
 const path = require("path");
 const session = require("express-session");
 const passport = require("passport");
-const morgan = require("morgan");
+const { logger } = require("./src/config/logger/logger.config");
+const expressPino = require("express-pino-logger")({
+  logger,
+});
 
 // project files
 const pool = require("./src/config/db/db.connect");
 const initDatabase = require("./src/config/db/db.config");
-const apiRouter = require("./src/app/routes/api");
+const apiRouter = require("./src/app/routes/v1/api");
 const { responseHandler } = require("./src/utils/common/apiResponseHandler");
 
 // Connect to the database
@@ -40,12 +43,14 @@ app.use(
   })
 );
 
-app.use("/api", apiRouter);
+app.use("/api/v1", apiRouter);
 
-app.use(morgan("dev"));
+
+// http req logging
+app.use(expressPino);
 
 app.use("*", (req, res) => {
-  return responseHandler(res, 404, false, "Request Not Found");
+  return responseHandler(req, res, 404, false, "Request Not Found");
 });
 
 passport.serializeUser(function (user, done) {
@@ -56,4 +61,4 @@ passport.deserializeUser(function (user, done) {
   done(null, user);
 });
 
-app.listen(PORT, () => console.log(`App listening on ${PORT}`));
+app.listen(PORT, () => logger.info(`App listening on ${PORT}`));
