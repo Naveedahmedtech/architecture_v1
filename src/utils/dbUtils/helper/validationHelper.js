@@ -1,5 +1,6 @@
 const pool = require("../../../config/db/db.connect");
 const { logger } = require("../../../config/logger/logger.config");
+const { CustomError } = require("../../common/customErrorClass");
 
 const checkRecord = async (tableName, filters) => {
   try {
@@ -18,19 +19,12 @@ const checkRecord = async (tableName, filters) => {
     const result = await pool.query(queryText, queryValues);
 
     if (result.rows.length === 0) {
-      throw new Error("RecordNotFound");
+      throw new CustomError("NOT_FOUND", `Record not found in ${tableName}`);
     }
 
     return result.rows[0];
   } catch (error) {
-    switch (error.message) {
-      case "RecordNotFound":
-        throw new Error("RecordNotFound");
-        break;
-      default:
-        logger.error(`Error checking record in ${tableName}:`, error);
-        throw new Error("DatabaseQueryError");
-    }
+    throw error;
   }
 };
 

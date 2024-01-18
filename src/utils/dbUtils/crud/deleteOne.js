@@ -19,16 +19,17 @@ exports.deleteOne = async (
       deletedRecord: deletedRecords[0],
     });
   } catch (error) {
-    switch (error.message) {
-      case "DeleteFilterMissing":
-        throw new Error("DeleteFilterMissing");
-      case "RecordNotFound":
-        throw new Error("RecordNotFound");
-      case "DB_ERROR":
-        throw new Error(ERROR_MSGS.INTERNAL_SERVER_ERROR);
-      default:
-        console.error("Error deleting record:", error);
-        throw new Error(ERROR_MSGS.INTERNAL_SERVER_ERROR);
+    if (error.code === "NOT_FOUND") {
+      return responseHandler(req, res, 404, false, error.message);
+    } else {
+      console.error("Error fetching records:", error);
+      return responseHandler(
+        req,
+        res,
+        500,
+        false,
+        ERROR_MSGS.INTERNAL_SERVER_ERROR
+      );
     }
   }
 };

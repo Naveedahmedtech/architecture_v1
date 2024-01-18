@@ -1,5 +1,6 @@
 const pool = require("../../../config/db/db.connect");
 const { logger } = require("../../../config/logger/logger.config");
+const { CustomError } = require("../../common/customErrorClass");
 const {
   buildWhereClause,
   buildJoinClause,
@@ -29,20 +30,20 @@ const insertRecord = async (tableName, data) => {
 
     return insertResult.rows[0].id;
   } catch (error) {
+    if (error.code === "23505") {
+      const fieldNameMatch = /Key \(([^)]+)\)=/.exec(error.detail);
+      const fieldName = fieldNameMatch ? fieldNameMatch[1] : "unknown field";
+      const errorMessage = `${fieldName} already exists in ${tableName}.`;
+
+      throw new CustomError("DUPLICATE", errorMessage, error);
+    }
     logger.error(error);
-    throw new Error("InsertOperationFailed");
+    throw error;
   }
 };
 
 const updateRecord = async (tableName, data, filters) => {
   try {
-    if (!data || Object.keys(data).length === 0) {
-      throw new Error("UpdateDataMissing");
-    }
-    if (!filters || filters.length === 0) {
-      throw new Error("UpdateFilterMissing");
-    }
-
     const updates = Object.keys(data)
       .map((key, index) => `${key} = $${index + 1}`)
       .join(", ");
@@ -58,20 +59,17 @@ const updateRecord = async (tableName, data, filters) => {
     const updateQuery = `UPDATE ${tableName} SET ${updates} ${whereClause} RETURNING *`;
     const updateResult = await pool.query(updateQuery, combinedValues);
 
-    // if (updateResult.rowCount === 0) {
-    //   throw new Error("RecordNotFound");
-    // }
-
     return updateResult.rows[0];
   } catch (error) {
-    switch (error.message) {
-      case "RecordNotFound":
-        throw new Error("RecordNotFound");
-        break;
-      default:
-        logger.error(`Error checking record in ${tableName}:`, error);
-        throw new Error("UpdateDatabaseQueryError");
+    if (error.code === "23505") {
+      const fieldNameMatch = /Key \(([^)]+)\)=/.exec(error.detail);
+      const fieldName = fieldNameMatch ? fieldNameMatch[1] : "unknown field";
+      const errorMessage = `${fieldName} already exists in ${tableName}.`;
+
+      throw new CustomError("DUPLICATE", errorMessage, error);
     }
+    logger.error(error);
+    throw error;
   }
 };
 
@@ -125,18 +123,12 @@ const selectQuery = async ({
     const result = await pool.query(query, filterValues);
 
     if (result.rowCount === 0) {
-      throw new Error("SelectedRecordNotFound");
+      throw new CustomError("NOT_FOUND", `Record not found in ${tableName}`);
     }
 
     return result.rows;
   } catch (error) {
-    switch (error.message) {
-      case "SelectedRecordNotFound":
-        throw new Error("SelectedRecordNotFound");
-      default:
-        console.error("Error fetching records:", error);
-        throw new Error("DB_ERROR");
-    }
+    throw error;
   }
 };
 
@@ -164,18 +156,12 @@ const deleteRecords = async (tableName, filters = [], returnDeleted = true) => {
     const result = await pool.query(deleteQuery, filterValues);
 
     if (filters.length > 0 && result.rowCount === 0) {
-      throw new Error("RecordNotFound");
+      throw new CustomError("NOT_FOUND", `Record not found in ${tableName}`);
     }
 
     return returnDeleted ? result.rows : [];
   } catch (error) {
-    switch (error.message) {
-      case "RecordNotFound":
-        throw new Error("RecordNotFound");
-      default:
-        console.error("Error fetching records:", error);
-        throw new Error("DB_ERROR");
-    }
+    throw error;
   }
 };
 

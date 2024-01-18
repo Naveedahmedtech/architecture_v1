@@ -54,23 +54,20 @@ exports.getAll = async (
       }
     );
   } catch (error) {
-    switch (error.message) {
-      case "SelectedRecordNotFound":
-        return responseHandler(
-          req,
-          res,
-          200,
-          true,
-          ERROR_MSGS.RECORD_NOT_FOUND,
-          {
-            paginationInfo,
-            data: [],
-          }
-        );
-      // throw new Error("SelectedRecordNotFound");
-      default:
-        console.error("Error fetching records:", error);
-        throw new Error(ERROR_MSGS.INTERNAL_SERVER_ERROR);
+    if (error.code === "NOT_FOUND") {
+      return responseHandler(req, res, 200, true, ERROR_MSGS.RECORD_NOT_FOUND, {
+        paginationInfo,
+        data: [],
+      });
+    } else {
+      console.error("Error fetching records:", error);
+      return responseHandler(
+        req,
+        res,
+        500,
+        false,
+        ERROR_MSGS.INTERNAL_SERVER_ERROR
+      );
     }
   }
 };

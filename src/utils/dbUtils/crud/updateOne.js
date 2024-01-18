@@ -1,3 +1,4 @@
+const { logger } = require("../../../config/logger/logger.config");
 const { ERROR_MSGS } = require("../../../constants/common");
 const { responseHandler } = require("../../common/apiResponseHandler");
 const { updateRecord, selectQuery } = require("../helper/dbOperations");
@@ -27,26 +28,18 @@ exports.updateOne = async (
       ],
     });
 
-    // if (records.length === 0) {
-    //   return responseHandler(req, res, 404, false, notFoundMessage);
-    // }
-
     return responseHandler(req, res, 200, true, successMessage, records[0]);
   } catch (error) {
-    switch (error.message) {
-      case "RecordNotFound":
-        throw new Error("RecordNotFound");
-      case "SelectedRecordNotFound":
-        throw new Error("SelectedRecordNotFound");
-      case "UpdateDataMissing":
-        throw new Error("UpdateDataMissing");
-      case "UpdateFilterMissing":
-        throw new Error("UpdateFilterMissing");
-
-      case "UpdateDatabaseQueryError":
-        throw new Error("UpdateDatabaseQueryError");
+    switch (error.code) {
+      case "DUPLICATE":
+        logger.error({
+          message: "Duplicate entry error",
+          error: error.message,
+        });
+        return responseHandler(req, res, 409, false, error.message);
       default:
-        throw new Error(ERROR_MSGS.INTERNAL_SERVER_ERROR);
+        logger.error({ message: "Error updating a new record:", error });
+        return responseHandler(req, res, 500, false, "Internal Server Error");
     }
   }
 };

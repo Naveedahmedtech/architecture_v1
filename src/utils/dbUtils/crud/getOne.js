@@ -38,14 +38,23 @@ exports.getOne = async (
       records[0]
     );
   } catch (error) {
-    switch (error.message) {
-      case "SelectedRecordNotFound":
-        throw new Error("SelectedRecordNotFound");
-      case "DB_Error":
-        throw new Error(ERROR_MSGS.INTERNAL_SERVER_ERROR);
-      default:
-        console.error("Error fetching records:", error);
-        throw new Error(ERROR_MSGS.INTERNAL_SERVER_ERROR);
+    if (error.code === "NOT_FOUND") {
+      return responseHandler(
+        req,
+        res,
+        404,
+        false,
+        `Record not found in ${tableName}`
+      );
+    } else {
+      console.error("Error fetching records:", error);
+      return responseHandler(
+        req,
+        res,
+        500,
+        false,
+        ERROR_MSGS.INTERNAL_SERVER_ERROR
+      );
     }
   }
 };
