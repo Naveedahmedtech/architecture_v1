@@ -11,8 +11,7 @@ exports.getOne = async (
     joins = [],
     filters = [],
     sortField = null,
-    sortOrder = "asc",
-    notFoundMessage = "Record not found",
+    sortOrder = "desc",
     additionalOptions = {},
   }
 ) => {
@@ -29,32 +28,13 @@ exports.getOne = async (
       groupByOptions: additionalOptions,
     });
 
-    return responseHandler(
-      req,
-      res,
-      200,
-      true,
-      "Record retrieved successfully",
-      records[0]
-    );
+    return records[0];
   } catch (error) {
     if (error.code === "NOT_FOUND") {
-      return responseHandler(
-        req,
-        res,
-        404,
-        false,
-        `Record not found in ${tableName}`
-      );
+      throw new CustomError("NOT_FOUND", error.message, error);
     } else {
       console.error("Error fetching records:", error);
-      return responseHandler(
-        req,
-        res,
-        500,
-        false,
-        ERROR_MSGS.INTERNAL_SERVER_ERROR
-      );
+      throw error;
     }
   }
 };

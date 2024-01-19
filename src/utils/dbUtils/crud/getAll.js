@@ -42,32 +42,31 @@ exports.getAll = async (
     paginationInfo = getPaginationInfo(totalRows, page, limit);
     paginationInfo.hasNextPage = hasNextPage;
 
-    return responseHandler(
-      req,
-      res,
-      200,
-      true,
-      `${tableName} records retrieved successfully!`,
-      {
-        paginationInfo,
-        data: records,
-      }
-    );
+    // return responseHandler(
+    //   req,
+    //   res,
+    //   200,
+    //   true,
+    //   `${tableName} records retrieved successfully!`,
+    //   {
+    //     paginationInfo,
+    //     data: records,
+    //   }
+    // );
+    return {
+      paginationInfo,
+      data: records,
+    };
   } catch (error) {
     if (error.code === "NOT_FOUND") {
-      return responseHandler(req, res, 200, true, ERROR_MSGS.RECORD_NOT_FOUND, {
-        paginationInfo,
-        data: [],
-      });
+      // return responseHandler(req, res, 200, true, ERROR_MSGS.RECORD_NOT_FOUND, {
+      //   paginationInfo,
+      //   data: [],
+      // });
+      throw new CustomError("NOT_FOUND", error.message, error);
     } else {
       console.error("Error fetching records:", error);
-      return responseHandler(
-        req,
-        res,
-        500,
-        false,
-        ERROR_MSGS.INTERNAL_SERVER_ERROR
-      );
+      throw error;
     }
   }
 };

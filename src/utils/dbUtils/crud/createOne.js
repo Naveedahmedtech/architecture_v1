@@ -35,8 +35,7 @@ exports.createOne = async (
       groupByOptions,
       excludeFields,
     });
-
-    return responseHandler(req, res, 201, true, successMessage, records);
+    return records;
   } catch (error) {
     switch (error.code) {
       case "DUPLICATE":
@@ -44,22 +43,16 @@ exports.createOne = async (
           message: "Duplicate entry error",
           error: error.message,
         });
-        return responseHandler(req, res, 409, false, error.message);
+        throw new CustomError("DUPLICATE", error.message, error);
       case "InsertDataMissing":
         logger.error({
           message: "Inserting Data missing:",
           error: error.message,
         });
-        return responseHandler(req, res, 400, false, error.message);
-      case "DB_ERROR":
-        logger.error({
-          message: "Failed to insert the record",
-          error: error.message,
-        });
-        return responseHandler(req, res, 400, false, error.message);
+        throw new CustomError("InsertDataMissing", error.message, error);
       default:
         logger.error({ message: "Error creating a new record:", error });
-        return responseHandler(req, res, 500, false, "Internal Server Error");
+        throw error;
     }
   }
 };

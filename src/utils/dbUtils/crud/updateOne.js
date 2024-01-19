@@ -1,6 +1,7 @@
 const { logger } = require("../../../config/logger/logger.config");
 const { ERROR_MSGS } = require("../../../constants/common");
 const { responseHandler } = require("../../common/apiResponseHandler");
+const { CustomError } = require("../../common/customErrorClass");
 const { updateRecord, selectQuery } = require("../helper/dbOperations");
 
 exports.updateOne = async (
@@ -28,18 +29,18 @@ exports.updateOne = async (
       ],
     });
 
-    return responseHandler(req, res, 200, true, successMessage, records[0]);
+    return records[0];
   } catch (error) {
     switch (error.code) {
       case "DUPLICATE":
         logger.error({
           message: "Duplicate entry error",
-          error: error.message,
+          error: error.code,
         });
-        return responseHandler(req, res, 409, false, error.message);
+        throw new CustomError("DUPLICATE", error.message, error);
       default:
         logger.error({ message: "Error updating a new record:", error });
-        return responseHandler(req, res, 500, false, "Internal Server Error");
+        throw error;
     }
   }
 };

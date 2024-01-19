@@ -29,7 +29,8 @@
     "passport-google-oidc": "^0.1.0",
     "pg": "^8.11.3",
     "pino": "^8.17.2",
-    "pino-pretty": "^10.3.1"
+    "pino-pretty": "^10.3.1",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
     "jest": "^29.7.0",

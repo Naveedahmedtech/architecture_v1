@@ -1,5 +1,6 @@
 const { ERROR_MSGS } = require("../../../constants/common");
 const { responseHandler } = require("../../common/apiResponseHandler");
+const { CustomError } = require("../../common/customErrorClass");
 const { deleteRecords, countRecords } = require("../helper/dbOperations");
 
 exports.deleteAll = async (
@@ -16,27 +17,22 @@ exports.deleteAll = async (
     const count = await countRecords(tableName, filters);
 
     if (count === 0) {
-      return responseHandler(req, res, 404, false, notFoundMessage);
+      return responseHandler(req, res, 200, true, "No Records found to delete");
     }
 
     const deletedRecords = await deleteRecords(tableName, filters);
 
-    return responseHandler(req, res, 200, true, successMessage, {
+    return {
       deletedCount: count,
       deletedRecords: deletedRecords,
-    });
+    };
   } catch (error) {
     if (error.code === "NOT_FOUND") {
-      return responseHandler(req, res, 404, false, error.message);
+      // return responseHandler(req, res, 200, true, "No Records found to delete");
+      throw new CustomError("NOT_FOUND", "No Records found to delete");
     } else {
       console.error("Error fetching records:", error);
-      return responseHandler(
-        req,
-        res,
-        500,
-        false,
-        ERROR_MSGS.INTERNAL_SERVER_ERROR
-      );
+      throw error;
     }
   }
 };

@@ -187,7 +187,7 @@ const countRecords = async (tableName, filters = [], joins = []) => {
     return parseInt(result.rows[0].count, 10);
   } catch (error) {
     console.error(`Error counting records in ${tableName}: ${error.message}`);
-    throw new Error("DB_ERROR");
+    throw error;
   }
 };
 
