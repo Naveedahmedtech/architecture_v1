@@ -1,5 +1,4 @@
-const { ERROR_MSGS } = require("../../../constants/common");
-const { responseHandler } = require("../../common/apiResponseHandler");
+const { CustomError } = require("../../common/customErrorClass");
 const { selectQuery } = require("../helper/dbOperations");
 
 exports.getOne = async (
@@ -11,7 +10,8 @@ exports.getOne = async (
     joins = [],
     filters = [],
     sortField = null,
-    sortOrder = "desc",
+    sortOrder = "asc",
+    notFoundMessage = "Record not found",
     additionalOptions = {},
   }
 ) => {
@@ -33,7 +33,6 @@ exports.getOne = async (
     if (error.code === "NOT_FOUND") {
       throw new CustomError("NOT_FOUND", error.message, error);
     } else {
-      console.error("Error fetching records:", error);
       throw error;
     }
   }
