@@ -11,8 +11,6 @@ exports.updateOne = async (
     filters = [],
     returnFields = "*",
     joins = [],
-    notFoundMessage = "Updated record not found",
-    successMessage = "Record updated successfully",
   }
 ) => {
   try {
