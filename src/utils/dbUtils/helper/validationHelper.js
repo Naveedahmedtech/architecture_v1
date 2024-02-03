@@ -19,7 +19,7 @@ const checkRecord = async (tableName, filters) => {
     const result = await pool.query(queryText, queryValues);
 
     if (result.rows.length === 0) {
-      throw new CustomError("NOT_FOUND", `Record not found in ${tableName}`);
+      throw new CustomError("NOT_FOUND", `Record not found in ${tableName}`, `Please make sure that the record exists in the ${tableName} before proceeding`);
     }
 
     return result.rows[0];

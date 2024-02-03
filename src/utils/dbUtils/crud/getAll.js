@@ -1,3 +1,4 @@
+const { logger } = require("../../../config/logger/logger.config");
 const { CustomError } = require("../../common/customErrorClass");
 const { getPaginationInfo } = require("../../common/pagination");
 const { selectQuery, countRecords } = require("../helper/dbOperations");
@@ -33,11 +34,18 @@ exports.getAll = async (
       groupByOptions: additionalOptions,
     });
 
+    const displayedItemsCount = records?.length;
+
     const totalRows = await countRecords(tableName, filters, joins);
     const totalPages = Math.ceil(totalRows / limit);
     const hasNextPage = page < totalPages;
 
-    const paginationInfo = getPaginationInfo(totalRows, page, limit);
+    const paginationInfo = getPaginationInfo(
+      totalRows,
+      page,
+      limit,
+      displayedItemsCount
+    );
     paginationInfo.hasNextPage = hasNextPage;
 
     return {

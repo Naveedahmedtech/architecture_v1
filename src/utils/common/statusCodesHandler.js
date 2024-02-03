@@ -5,6 +5,7 @@ exports.statusCodeMap = {
   204: "NO_CONTENT",
   301: "MOVED_PERMANENTLY",
   302: "FOUND",
+  304: "NOT_MODIFIED",
   400: "BAD_REQUEST",
   401: "UNAUTHORIZED",
   403: "FORBIDDEN",

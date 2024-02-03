@@ -46,7 +46,7 @@ const responseHandler = (
   const isError = status >= 400;
 
   const response = isError
-    ? createErrorResponse(req, status, success, message)
+    ? createErrorResponse(req, status, success, message, details)
     : createSuccessResponse(req, status, success, message, result);
 
   if (isError) {

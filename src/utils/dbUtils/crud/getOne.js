@@ -1,3 +1,4 @@
+const { logger } = require("../../../config/logger/logger.config");
 const { CustomError } = require("../../common/customErrorClass");
 const { selectQuery } = require("../helper/dbOperations");
 
@@ -9,10 +10,9 @@ exports.getOne = async (
     fields = "*",
     joins = [],
     filters = [],
+    additionalOptions = {},
     sortField = null,
     sortOrder = "asc",
-    notFoundMessage = "Record not found",
-    additionalOptions = {},
   }
 ) => {
   try {

@@ -17,7 +17,6 @@ const deleteCloudImage = async (tableName, id) => {
   if (image) {
     const publicId = image.public_id;
     await deleteFromCloudinary(publicId);
-    logger.info("eleted successfully!");
   }
 };
 

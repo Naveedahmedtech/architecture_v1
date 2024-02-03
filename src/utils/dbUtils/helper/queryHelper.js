@@ -1,6 +1,11 @@
+const { logger } = require("../../../config/logger/logger.config");
+
 const buildJoinClause = (joins) => {
   return joins
-    .map((join) => `JOIN ${join.table} ON ${join.condition}`)
+    .map(
+      (join) =>
+        `${join.type ? join.type : "JOIN"} ${join.table} ON ${join.condition}`
+    )
     .join(" ");
 };
 

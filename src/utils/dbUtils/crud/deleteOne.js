@@ -19,7 +19,7 @@ exports.deleteOne = async (
     return deletedRecords[0];
   } catch (error) {
     if (error.code === "NOT_FOUND") {
-      throw new CustomError("NOT_FOUND", error.message, error);
+        throw new CustomError("NOT_FOUND", error.message, error);
     } else {
       console.error("Error fetching records:", error);
       throw error;

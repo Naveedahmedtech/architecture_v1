@@ -13,32 +13,48 @@ const buildDataObject = async (req, tableName, fileColumnName) => {
     data[key] = value;
   }
 
-  // Handle file upload separately if a file is present in the request
-  if (req.file) {
-    // Use the fileColumnName variable to set the property name
-    data[fileColumnName] = await uploadToCloudinary(req.file.path, tableName);
-  }
-
   return data;
 };
 
-
-
-const createRecord = async (req, res, data, tableName) => {
+const createRecord = async (
+  req,
+  res,
+  data,
+  tableName,
+  returnFields = "*",
+  joins = []
+) => {
   return await createOne(req, res, {
     tableName,
     data,
-    returnFields: "*",
+    returnFields,
+    joins,
   });
 };
 
-const sendSuccessResponse = (req, res, message,  record) => {
+const sendSuccessResponse = (req, res, message, record) => {
   return responseHandler(req, res, 201, true, message, record);
 };
 
 const handleAddError = (req, res, error) => {
   if (error.code === "DUPLICATE") {
     return responseHandler(req, res, 409, false, error.message);
+  }
+  if (error.code === "NOT_FOUND") {
+    logger.error({
+      code: error.code,
+      message: error.message,
+      detail: error.originalError,
+    });
+    return responseHandler(
+      req,
+      res,
+      404,
+      false,
+      error.message,
+      null,
+      error.originalError
+    );
   }
   logger.error({ error: error?.message });
   return responseHandler(

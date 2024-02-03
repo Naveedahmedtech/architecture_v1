@@ -6,6 +6,10 @@ const router = express.Router();
 const userController = require("../../../controllers/v1/users/users");
 const authGuard = require("../../../../middleware/authGaurd");
 
-router.get("/getAll", authGuard, userController.getAll);
+router.patch("/update",  userController.update);
+router.get("/get/:id", userController.get);
+router.get("/getAll", userController.getAll);
+// router.get("/getAll", authGuard, userController.getAll);
+// router.get("/getAll", authGuard, userController.getAll);
 
 module.exports = router;

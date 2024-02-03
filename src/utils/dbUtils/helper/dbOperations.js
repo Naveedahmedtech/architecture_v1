@@ -23,11 +23,6 @@ const insertRecord = async (tableName, data) => {
 
   try {
     const insertResult = await pool.query(insertQuery, values);
-
-    if (insertResult.rowCount === 0) {
-      throw new Error("InsertOperationFailed");
-    }
-
     return insertResult.rows[0].id;
   } catch (error) {
     if (error.code === "23505") {
@@ -104,9 +99,10 @@ const selectQuery = async ({
 
     if (!sortField) {
       sortField = `${tableName}.id`;
-    } else if (joins.length > 0 && sortField === "id") {
-      sortField = `${joins[0].table}.id`;
     }
+    // else if (joins.length > 0 && sortField === "id") {
+    //   sortField = `${joins[0].table}.id`;
+    // }
 
     const sortClause = getSortClause(sortField, sortOrder);
 
@@ -121,6 +117,7 @@ const selectQuery = async ({
 
     // Execute the query with filter values
     const result = await pool.query(query, filterValues);
+
 
     if (result.rowCount === 0) {
       throw new CustomError("NOT_FOUND", `Record not found in ${tableName}`);
@@ -168,22 +165,28 @@ const deleteRecords = async (tableName, filters = [], returnDeleted = true) => {
 const countRecords = async (tableName, filters = [], joins = []) => {
   try {
     let query = `SELECT COUNT(*) FROM ${tableName}`;
-
+    const filterValues = [];
     const joinClause = joins
       .map((join) => `JOIN ${join.table} ON ${join.condition}`)
       .join(" ");
+
     if (joinClause) {
       query += ` ${joinClause}`;
     }
 
     const whereClause = filters
-      .map((filter) => `${filter.field} ${filter.operator} ${filter.value}`)
+      .map((filter, index) => {
+        filterValues.push(filter.value);
+        return `${filter.field} ${filter.operator} $${index + 1}`;
+      })
       .join(" AND ");
+
     if (whereClause) {
       query += ` WHERE ${whereClause}`;
     }
 
-    const result = await pool.query(query);
+
+    const result = await pool.query(query, filterValues);
     return parseInt(result.rows[0].count, 10);
   } catch (error) {
     console.error(`Error counting records in ${tableName}: ${error.message}`);

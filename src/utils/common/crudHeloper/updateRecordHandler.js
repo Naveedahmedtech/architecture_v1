@@ -33,30 +33,28 @@ const buildUpdateDataObject = async (req) => {
 
 
 const uploadImage = async (record, file, data, tableName, fileColumnName) => {
-  const icon = record[fileColumnName]; // Use bracket notation
-  logger.info({ message: "Checking existing record", record: record });
+  const icon = record[fileColumnName]; 
 
   if (record && file) {
     if (!icon) {
-      logger.info("Uploading icon");
       const uploadedImage = await uploadToCloudinary(file.path, tableName);
-      data[fileColumnName] = uploadedImage; // Use bracket notation
+      data[fileColumnName] = uploadedImage; 
     } else {
-      logger.info("Updating icon");
       const publicId = icon.public_id;
       const updatedImage = await updateOnCloudinary(file.path, publicId);
-      data[fileColumnName] = updatedImage; // Use bracket notation
+      data[fileColumnName] = updatedImage; 
     }
   }
 };
 
 
-const updateRecord = async (req, res, data, id, tableName) => {
+const updateRecord = async (req, res, data, id, tableName, returnFields = "*", joins = []) => {
   return await updateOne(req, res, {
     tableName,
     data,
     filters: [{ field: "id", operator: "=", value: id }],
-    returnFields: "*",
+    returnFields,
+    joins,
   });
 };
 
@@ -78,7 +76,9 @@ const handleUpdateError = (req, res, error, tableName) => {
       res,
       404,
       false,
-      `Record not found in ${tableName}`
+      error.message,
+      null,
+      error.originalError
     );
   }
   if (error instanceof CustomError && error.code === "NOT_MODIFIED") {
@@ -94,7 +94,7 @@ const handleUpdateError = (req, res, error, tableName) => {
   if (error.code === "DUPLICATE") {
     return responseHandler(req, res, 409, false, error.message);
   } else {
-    logger.error({ message: "Internal server error", error: error.code });
+    logger.error({ message: "Internal server error", error: error.message });
     return responseHandler(
       req,
       res,
