@@ -54,7 +54,7 @@ exports.register = async (req, res) => {
     await createOne(req, res, {
       tableName: "users",
       data: data,
-      returnFields: "*",
+      returnFields: "*", 
       excludeFields: ["password"],
     });
   } catch (error) {
