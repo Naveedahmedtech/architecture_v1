@@ -40,9 +40,6 @@ const handleAddError = (req, res, error) => {
   if (error.code === "ALREADY_EXISTS") {
     return responseHandler(req, res, 409, false, error.message);
   }
-  // if (error.code === "INVALID_CREDENTIALS") {
-  //   return responseHandler(req, res, 409, false, error.message,   error.originalError);
-  // }
   if (error.code === "DUPLICATE") {
     logger.error({ code: "duplicate" });
     return responseHandler(req, res, 409, false, error.message);

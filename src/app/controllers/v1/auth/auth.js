@@ -29,7 +29,7 @@ const { setCookie } = require("../../../../utils/common/cookieHandler");
 const { ACCESS_TOKEN_EXPIRY_SECONDS } = require("../../../../constants/auth");
 const { logger } = require("../../../../config/logger/logger.config");
 const { ERROR_MSGS } = require("../../../../constants/common");
-const { handleToken } = require("./utils/helper");
+const { handleToken, handleRefreshTokenErrors } = require("./utils/helper");
 
 // TODO: include role for registration, login, forgotPassword, change password, reset password, verify code
 // TODO: make the verification code api for both forgot and email verification after registration
@@ -110,7 +110,7 @@ exports.refreshToken = async (req, res) => {
     // Verify the refresh token
     const decoded = verifyToken(refreshToken);
     if (!decoded) {
-      return responseHandler(res, 403, false, "Invalid refresh token");
+      return responseHandler(req, res, 403, false, "Invalid refresh token");
     }
 
     // Check if the user still exists
@@ -126,25 +126,11 @@ exports.refreshToken = async (req, res) => {
     };
     const newAccessToken = generateToken(accessPayload);
 
-    return responseHandler(res, 200, true, "New token generated successfully", {
+    return responseHandler(req, res, 200, true, "New token generated successfully", {
       accessToken: newAccessToken,
     });
   } catch (error) {
-    switch (error.message) {
-      case "RecordNotFound":
-        return responseHandler(res, 401, false, "Invalid authentication token");
-      case "JWTVerificationError":
-        const isExpiredError = error instanceof jwt.TokenExpiredError;
-        return responseHandler(
-          res,
-          isExpiredError ? 403 : 401,
-          false,
-          isExpiredError ? "Token has expired" : "Invalid authentication token"
-        );
-      default:
-        console.error("Error creating a new record:", error);
-        return responseHandler(res, 500, false, "Internal Server Error");
-    }
+    handleRefreshTokenErrors(req, res, error);
   }
 };
 

@@ -5,7 +5,9 @@ const {
   MAX_AGE_ACCESS_TOKEN,
   REFRESH_TOKEN_EXPIRY_DAYS,
 } = require("../../../../../constants/auth");
+const { ERROR_MSGS } = require("../../../../../constants/common");
 const { generateToken } = require("../../../../../lib/common/jwt");
+const { responseHandler } = require("../../../../../utils/common/apiResponseHandler");
 const { setCookie } = require("../../../../../utils/common/cookieHandler");
 
 const handleToken = async (res, id, email, username, role) => {
@@ -44,6 +46,46 @@ const handleToken = async (res, id, email, username, role) => {
   }
 };
 
+
+const handleRefreshTokenErrors = (req, res, error) => {
+  if (error.code === "NOT_FOUND") {
+    return responseHandler(
+      req,
+      res,
+      404,
+      false,
+      error.message,
+      null,
+      error.originalError
+    );
+  }
+  if (error.name === "JsonWebTokenError") {
+    return responseHandler(
+      req,
+      res,
+      401,
+      false,
+      "Invalid token",
+      null,
+      "Please make sure you have a valid refresh token while proceeding"
+    );
+  }
+  logger.error({ error: error?.message });
+  return responseHandler(
+    req,
+    res,
+    500,
+    false,
+    ERROR_MSGS.INTERNAL_SERVER_ERROR
+  );
+};
+
+
+
+
+
+
 module.exports = {
   handleToken,
+  handleRefreshTokenErrors,
 };
