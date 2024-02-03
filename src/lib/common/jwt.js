@@ -12,7 +12,7 @@ const generateToken = (payload, expiresIn = "1h") => {
     return jwt.sign(payload, JWT_SECRET, { expiresIn });
   } catch (error) {
     console.error("Error generating JWT token:", error);
-    throw new Error("JWTGeneratorError");
+    throw error;
   }
 };
 
@@ -26,7 +26,7 @@ const verifyToken = (token) => {
     return jwt.verify(token, JWT_SECRET);
   } catch (error) {
     console.error("JWT Verification Error:", error);
-    throw new Error("JWTVerificationError");
+    throw error;
   }
 };
 

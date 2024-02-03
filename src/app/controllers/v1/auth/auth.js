@@ -1,6 +1,13 @@
 // project external files
 
 // project files
+const { TABLES } = require("../../../../constants/common");
+const {
+  buildDataObject,
+  createRecord,
+  handleAddError,
+  sendSuccessResponse,
+} = require("../../../../utils/common/crudHeloper/createRecordHelper");
 const {
   hashPassword,
   verifyPassword,
@@ -19,14 +26,10 @@ const {
   recordExists,
 } = require("../../../../utils/dbUtils/helper/validationHelper");
 const { setCookie } = require("../../../../utils/common/cookieHandler");
-const {
-  ACCESS_TOKEN_EXPIRY_SECONDS,
-  MAX_AGE_REFRESH_TOKEN,
-  MAX_AGE_ACCESS_TOKEN,
-  REFRESH_TOKEN_EXPIRY_DAYS,
-} = require("../../../../constants/auth");
+const { ACCESS_TOKEN_EXPIRY_SECONDS } = require("../../../../constants/auth");
 const { logger } = require("../../../../config/logger/logger.config");
 const { ERROR_MSGS } = require("../../../../constants/common");
+const { handleToken } = require("./utils/helper");
 
 // TODO: include role for registration, login, forgotPassword, change password, reset password, verify code
 // TODO: make the verification code api for both forgot and email verification after registration
@@ -34,53 +37,27 @@ const { ERROR_MSGS } = require("../../../../constants/common");
 // TODO: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // TODO: MODIFY THE RESPONSE
 
-exports.register = async (req, res) => {
-  try {
-    const { full_name, email, password, role } = req.body;
+const TABLE_NAME = TABLES.USER;
 
-    // Check if user already registered
+exports.register = async (req, res) => {
+  const { email } = req.body;
+  try {
     await recordExists("users", [
       { field: "email", operator: "=", value: email },
     ]);
-    const hashedPassword = await hashPassword(password);
-
-    const data = {
-      full_name: full_name,
-      email: email,
-      password: hashedPassword,
-      role: role || "user",
-    };
-
-    await createOne(req, res, {
-      tableName: "users",
-      data: data,
-      returnFields: "*", 
-      excludeFields: ["password"],
-    });
+    const data = await buildDataObject(req, TABLE_NAME);
+    const hashedPassword = await hashPassword(data.password);
+    delete data.password;
+    data.password = hashedPassword;
+    const createdRecord = await createRecord(req, res, data, TABLE_NAME);
+    return sendSuccessResponse(
+      req,
+      res,
+      "created record successfully",
+      createdRecord
+    );
   } catch (error) {
-    switch (error.message) {
-      case "ALREADY_EXISTS":
-        logger.error("ALREADY_EXISTS Error:", error);
-        return responseHandler(req, res, 409, false, ERROR_MSGS.ALREADY_EXISTS);
-      case "DatabaseQueryError":
-        logger.error("DatabaseQuery Error:", error);
-        return responseHandler(
-          req,
-          res,
-          500,
-          false,
-          ERROR_MSGS.INTERNAL_SERVER_ERROR
-        );
-      default:
-        logger.error("Registration Error:", error);
-        return responseHandler(
-          req,
-          res,
-          500,
-          false,
-          ERROR_MSGS.INTERNAL_SERVER_ERROR
-        );
-    }
+    handleAddError(req, res, error);
   }
 };
 
@@ -107,30 +84,13 @@ exports.login = async (req, res) => {
         ERROR_MSGS.INVALID_CREDENTIALS
       );
     }
-
-    // Generate JWT token with role
-    const payload = {
-      id: user.id,
-      email: user.email,
-      username: user.username,
-      role: user.role,
-    };
-    const token = generateToken(payload, ACCESS_TOKEN_EXPIRY_SECONDS);
-
-    // Generate refresh token
-    const refreshPayload = { id: user.id };
-    const refreshToken = generateToken(
-      refreshPayload,
-      REFRESH_TOKEN_EXPIRY_DAYS
-    );
-
-    setCookie(res, "token", token, MAX_AGE_ACCESS_TOKEN);
-    setCookie(res, "refreshToken", refreshToken, MAX_AGE_REFRESH_TOKEN);
-    setCookie(
+    logger.info({ code: "checked_record", user: user });
+    const { token, refreshToken } = await handleToken(
       res,
-      "expiresIn",
-      ACCESS_TOKEN_EXPIRY_SECONDS,
-      MAX_AGE_ACCESS_TOKEN
+      user.id,
+      user.email,
+      user.username,
+      user.role
     );
 
     return responseHandler(req, res, 200, true, "Login Successfully", {
@@ -139,23 +99,7 @@ exports.login = async (req, res) => {
       expiresIn: ACCESS_TOKEN_EXPIRY_SECONDS,
     });
   } catch (error) {
-    switch (error.message) {
-      case "RecordNotFound":
-        return responseHandler(
-          req,
-          res,
-          401,
-          false,
-          ERROR_MSGS.INVALID_CREDENTIALS
-        );
-        break;
-      case "JWTGeneratorError":
-        return responseHandler(req, res, 500, false, "Error creating token");
-        break;
-      default:
-        console.error("Error in login process:", error);
-        return responseHandler(req, res, 500, false, "Internal Server Error");
-    }
+    handleAddError(req, res, error);
   }
 };
 

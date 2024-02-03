@@ -19,7 +19,11 @@ const checkRecord = async (tableName, filters) => {
     const result = await pool.query(queryText, queryValues);
 
     if (result.rows.length === 0) {
-      throw new CustomError("NOT_FOUND", `Record not found in ${tableName}`, `Please make sure that the record exists in the ${tableName} before proceeding`);
+      throw new CustomError(
+        "NOT_FOUND",
+        `Record not found in ${tableName}`,
+        `Please make sure that the record exists in the ${tableName} before proceeding`
+      );
     }
 
     return result.rows[0];
@@ -46,18 +50,15 @@ const recordExists = async (tableName, filters) => {
 
     const result = await pool.query(queryText, queryValues);
     if (result.rows[0].exists) {
-      throw new Error("ALREADY_EXISTS");
+      throw new CustomError(
+        "ALREADY_EXISTS",
+        `User already exists in ${tableName}`,
+        `Please make sure that the record exists in the ${tableName} before proceeding..`
+      );
     }
     return result.rows[0];
   } catch (error) {
-    switch (error.message) {
-      case "ALREADY_EXISTS":
-        throw new Error("ALREADY_EXISTS");
-        break;
-      default:
-        logger.error(`Error checking record in ${tableName}:`, error);
-        throw new Error("DatabaseQueryError");
-    }
+    throw error;
   }
 };
 
