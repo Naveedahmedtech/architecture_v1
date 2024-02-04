@@ -20,6 +20,7 @@ const TABLES = {
   PRODUCTS_HISTORY: "products_history",
   DEALS_HISTORY: "deals_history",
   QUERIES: "queries",
+  API_KEYS: "api_keys",
 };
 
 module.exports = {
