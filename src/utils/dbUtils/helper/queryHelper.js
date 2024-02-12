@@ -1,5 +1,3 @@
-const { logger } = require("../../../config/logger/logger.config");
-
 const buildJoinClause = (joins) => {
   return joins
     .map(

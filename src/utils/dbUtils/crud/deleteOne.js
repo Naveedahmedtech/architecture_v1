@@ -1,5 +1,3 @@
-const { ERROR_MSGS } = require("../../../constants/common");
-const { responseHandler } = require("../../common/apiResponseHandler");
 const { CustomError } = require("../../common/customErrorClass");
 const { deleteRecords } = require("../helper/dbOperations");
 
@@ -9,8 +7,6 @@ exports.deleteOne = async (
   {
     tableName,
     filters = [],
-    successMessage = "Record deleted successfully",
-    notFoundMessage = "Record not found",
   }
 ) => {
   try {
@@ -21,7 +17,6 @@ exports.deleteOne = async (
     if (error.code === "NOT_FOUND") {
         throw new CustomError("NOT_FOUND", error.message, error);
     } else {
-      console.error("Error fetching records:", error);
       throw error;
     }
   }

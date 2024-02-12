@@ -11,7 +11,6 @@ exports.createOne = async (
     returnFields = "*",
     excludeFields = [],
     joins = [],
-    successMessage = "Record created successfully",
     sortField,
     sortOrder,
     aggregates = [],

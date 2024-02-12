@@ -7,8 +7,6 @@ exports.deleteAll = async (
   {
     tableName,
     filters = [],
-    successMessage = "Records deleted successfully",
-    notFoundMessage = "No matching records found to delete",
   }
 ) => {
   try {

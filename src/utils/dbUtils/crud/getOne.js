@@ -1,4 +1,3 @@
-const { logger } = require("../../../config/logger/logger.config");
 const { CustomError } = require("../../common/customErrorClass");
 const { selectQuery } = require("../helper/dbOperations");
 

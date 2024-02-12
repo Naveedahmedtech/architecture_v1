@@ -1,18 +1,50 @@
-const verifyApiKey = (req, res, next) => {
-    const apiKey = req.header('X-API-KEY');
-    if (!apiKey) {
-        return res.status(401).send('API key is required');
-    }
+const { ERROR_MSGS, TABLES } = require("../constants/common");
+const { responseHandler } = require("../utils/common/apiResponseHandler");
+const {
+  handleUpdateError,
+} = require("../utils/common/crudHeloper/updateRecordHandler");
+const { checkRecord } = require("../utils/dbUtils/helper/validationHelper");
 
-    // Here, you should check if the API key is valid
-    // For example, by looking it up in your database
-    if (apiKey !== 'your-expected-api-key') {
-        return res.status(403).send('Invalid API key');
+const TABLE_NAME = TABLES.API_KEYS;
+
+const verifyApiKey = async (req, res, next) => {
+  try {
+    const apiKey = req.header("X-API-KEY");
+    if (!apiKey) {
+      responseHandler(req, res, 403, false, "API key is required");
+    }
+    const record = await checkRecord(TABLE_NAME, [
+      { field: "key", operator: "=", value: apiKey },
+    ]);
+
+    if (apiKey !== record.key) {
+      responseHandler(req, res, 401, false, "Invalid API key");
     }
 
     next();
-}
-
+  } catch (error) {
+    if (error.code === "NOT_FOUND") {
+      return responseHandler(
+        req,
+        res,
+        401,
+        false,
+        "Invalid API key",
+        null,
+        "Make sure you have a valid API key"
+      );
+    } else {
+      logger.error({ message: "Internal server error", error: error.message });
+      return responseHandler(
+        req,
+        res,
+        500,
+        false,
+        ERROR_MSGS.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
+};
 
 module.exports = {
   verifyApiKey,
