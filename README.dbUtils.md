@@ -9,6 +9,7 @@ This documentation covers the database utility functions used in our Express app
 - CRUD Functions Utilities
 - Database Operations Utilities
 - Database Query Utilities
+- Validation Utilities -- Finding Record || Check for Record Existence
 
 - ## **`createOne` Function Documentation**
 
@@ -460,3 +461,56 @@ Usage Example:
 const options = { groupBy: 'department_id' };
 const groupByClause = buildGroupByClause(options);
 ```
+
+
+- ## __Database Record Validation Functions Documentation__
+This document explains the functionalities of two key database validation functions: `checkRecord` and `recordExists`. These functions are designed to check for the presence or absence of records in a database table based on specified criteria, facilitating robust data integrity and validation mechanisms within applications.
+
+## Overview
+`checkRecord` Function: Verifies the existence of a specific record in a table and returns it. This function is useful for scenarios where an operation depends on the presence of a record.
+
+`recordExists` Function: Checks if a record already exists in a table to prevent duplicate entries. It is particularly useful for operations that require uniqueness, such as user registration or adding unique items.
+
+### `checkRecord` Function
+
+Purpose
+To verify the existence of a record in a specified table based on given filters and return the found record.
+
+Parameters
+- tableName: The name of the table to check for the record.
+- filters: An array of filter objects specifying the criteria to identify the record. Each filter object must include a field, operator, and value.
+Usage Example
+
+```
+try {
+  const user = await checkRecord('users', [{ field: 'email', operator: '=', value: 'user@example.com' }]);
+  console.log('User exists', user);
+} catch (error) {
+  console.error(error.message);
+}
+```
+Error Handling
+
+Throws a CustomError with NOT_FOUND code if no record matches the specified criteria.
+
+### `recordExists` Function
+
+Purpose
+To check whether a record already exists in a specified table to prevent duplication. Returns a boolean indicating the existence of the record.
+
+Parameters
+-tableName: The name of the table to search for the existing record.
+-filters: An array of filter criteria to apply when searching for the record.
+
+Usage Example
+```
+try {
+  await recordExists('users', [{ field: 'email', operator: '=', value: 'user@example.com' }]);
+  console.log('User does not exist and can be created.');
+} catch (error) {
+  console.error(error.message); // User already exists
+}
+```
+Error Handling
+
+Throws a CustomError with ALREADY_EXISTS code if the record exists, indicating that the operation should not proceed to avoid duplication.

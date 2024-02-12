@@ -1,6 +1,6 @@
 const { logger } = require("../../../config/logger/logger.config");
 const { checkRecord } = require("../../dbUtils/helper/validationHelper");
-const { parseTagsId } = require("./commonHelper");
+
 // checking category record exists ..
 const checkRecordExists = async (req, tableName, fieldName) => {
   const id = req.body[fieldName];

@@ -1,15 +1,12 @@
 const { logger } = require("../../../config/logger/logger.config");
-const { ERROR_MSGS, TABLES } = require("../../../constants/common");
+const { ERROR_MSGS } = require("../../../constants/common");
 const { createOne } = require("../../dbUtils/crud/createOne");
 const { responseHandler } = require("../apiResponseHandler");
-const { uploadToCloudinary } = require("../upload");
 
-const buildDataObject = async (req, tableName, fileColumnName) => {
+const buildDataObject = async (req, tableName) => {
   let data = {};
 
-  // Loop over each property in req.body
   for (const [key, value] of Object.entries(req.body)) {
-    // Add each property to the data object
     data[key] = value;
   }
 
