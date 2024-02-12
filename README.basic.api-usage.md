@@ -1,5 +1,5 @@
 # __Comprehensive CRUD Operations and Cloud Image Management Documentation__
-This document details the application's approach to handling CRUD operations, cloud image management, and response handling. It describes how various utilities are employed to perform database interactions, manage images on Cloudinary, and ensure uniform response structures.
+This document details the application's approach to handling CRUD operations, cloud image management, and response handling. It describes how various utilities are employed to perform database interactions, manage images on Cloudinary, and ensure uniform response structures. 
 
 ## Overview
 
