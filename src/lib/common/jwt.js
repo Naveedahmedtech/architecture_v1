@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const { JWT_SECRET } = require("../../constants/auth");
+const { logger } = require("../../config/logger/logger.config");
 
 /**
  * Generates a JWT token for a user.
@@ -12,7 +13,7 @@ const generateToken = (payload, expiresIn = "1h") => {
     return jwt.sign(payload, JWT_SECRET, { expiresIn });
   } catch (error) {
     console.error("Error generating JWT token:", error);
-    throw new Error("JWTGeneratorError");
+    throw error;
   }
 };
 
@@ -25,8 +26,12 @@ const verifyToken = (token) => {
   try {
     return jwt.verify(token, JWT_SECRET);
   } catch (error) {
-    console.error("JWT Verification Error:", error);
-    throw new Error("JWTVerificationError");
+    logger.error({
+      code: "JWT_SECRET",
+      message: error,
+      // name: error.name instanceof "JsonWebTokenError",
+    });
+    throw error;
   }
 };
 

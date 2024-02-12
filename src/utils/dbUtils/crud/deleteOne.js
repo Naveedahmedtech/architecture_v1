@@ -1,4 +1,4 @@
-const { responseHandler } = require("../../common/apiResponseHandler");
+const { CustomError } = require("../../common/customErrorClass");
 const { deleteRecords } = require("../helper/dbOperations");
 
 exports.deleteOne = async (
@@ -7,30 +7,17 @@ exports.deleteOne = async (
   {
     tableName,
     filters = [],
-    successMessage = "Record deleted successfully",
-    notFoundMessage = "Record not found",
   }
 ) => {
   try {
-    const deletedRecords = await deleteRecords(tableName, filters, true);
+    const deletedRecords = await deleteRecords(tableName, filters);
 
-    return responseHandler(res, 200, false, successMessage, {
-      deletedRecord: deletedRecords[0],
-    });
+    return deletedRecords[0];
   } catch (error) {
-    switch (error.message) {
-      case "DeleteFilterMissing":
-        return responseHandler(
-          res,
-          400,
-          true,
-          "No valid filter provided for deletion"
-        );
-      case "RecordNotFound":
-        return responseHandler(res, 404, true, notFoundMessage);
-      default:
-        console.error("Error deleting record:", error);
-        return responseHandler(res, 500, true, "Internal Server Error");
+    if (error.code === "NOT_FOUND") {
+        throw new CustomError("NOT_FOUND", error.message, error);
+    } else {
+      throw error;
     }
   }
 };

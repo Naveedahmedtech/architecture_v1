@@ -1,4 +1,4 @@
-const { responseHandler } = require("../../common/apiResponseHandler");
+const { CustomError } = require("../../common/customErrorClass");
 const { selectQuery } = require("../helper/dbOperations");
 
 exports.getOne = async (
@@ -9,10 +9,9 @@ exports.getOne = async (
     fields = "*",
     joins = [],
     filters = [],
+    additionalOptions = {},
     sortField = null,
     sortOrder = "asc",
-    notFoundMessage = "Record not found",
-    additionalOptions = {},
   }
 ) => {
   try {
@@ -24,24 +23,16 @@ exports.getOne = async (
       sortField,
       sortOrder,
       limit: 1,
-      aggregates: [], 
+      aggregates: [],
       groupByOptions: additionalOptions,
     });
 
-    return responseHandler(
-      res,
-      200,
-      false,
-      "Record retrieved successfully",
-      records[0]
-    );
+    return records[0];
   } catch (error) {
-    switch (error.message) {
-      case "SelectedRecordNotFound":
-        return responseHandler(res, 404, true, "No records found");
-      default:
-        console.error("Error fetching records:", error);
-        return responseHandler(res, 500, true, "Internal Server Error");
+    if (error.code === "NOT_FOUND") {
+      throw new CustomError("NOT_FOUND", error.message, error);
+    } else {
+      throw error;
     }
   }
 };

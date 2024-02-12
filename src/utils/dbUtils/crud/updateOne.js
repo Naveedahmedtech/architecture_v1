@@ -1,4 +1,5 @@
-const { responseHandler } = require("../../common/apiResponseHandler");
+const { logger } = require("../../../config/logger/logger.config");
+const { CustomError } = require("../../common/customErrorClass");
 const { updateRecord, selectQuery } = require("../helper/dbOperations");
 
 exports.updateOne = async (
@@ -26,36 +27,14 @@ exports.updateOne = async (
       ],
     });
 
-    if (records.length === 0) {
-      return responseHandler(res, 404, true, notFoundMessage);
-    }
-
-    return responseHandler(res, 200, false, successMessage, records[0]);
+    return records[0];
   } catch (error) {
-    switch (error.message) {
-      case "RecordNotFound":
-        return responseHandler(res, 404, true, "Record not found");
-      case "SelectedRecordNotFound":
-        return responseHandler(res, 404, true, "Selected Record not found");
-      case "UpdateDataMissing":
-        return responseHandler(res, 400, true, "No update data provided");
-      case "UpdateFilterMissing":
-        return responseHandler(
-          res,
-          400,
-          true,
-          "No valid filter provided for update"
-        );
-      case "UpdateDatabaseQueryError":
-        return responseHandler(
-          res,
-          500,
-          true,
-          "Database query error during update"
-        );
+    switch (error.code) {
+      case "DUPLICATE":
+        throw new CustomError("DUPLICATE", error.message, error);
       default:
-        console.error("Error updating record:", error);
-        return responseHandler(res, 500, true, "Internal Server Error");
+        logger.error({ message: "Error updating a new record:", error });
+        throw error;
     }
   }
 };

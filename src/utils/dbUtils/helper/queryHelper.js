@@ -1,6 +1,9 @@
 const buildJoinClause = (joins) => {
   return joins
-    .map((join) => `JOIN ${join.table} ON ${join.condition}`)
+    .map(
+      (join) =>
+        `${join.type ? join.type : "JOIN"} ${join.table} ON ${join.condition}`
+    )
     .join(" ");
 };
 
@@ -8,7 +11,8 @@ const buildWhereClause = (filters, startIndex = 0) => {
   if (!filters || filters.length === 0) return { clause: "", values: [] };
 
   const filterClauses = filters.map(
-    (filter, index) => `${filter.field} ${filter.operator} $${index + startIndex + 1}`
+    (filter, index) =>
+      `${filter.field} ${filter.operator} $${index + startIndex + 1}`
   );
   const filterValues = filters.map((filter) => filter.value);
 
@@ -17,8 +21,6 @@ const buildWhereClause = (filters, startIndex = 0) => {
     values: filterValues,
   };
 };
-
-
 
 const getSortClause = (sortField, sortOrder) => {
   sortOrder =
@@ -46,7 +48,6 @@ const buildAggregateClause = (aggregates) => {
 const buildGroupByClause = (options) => {
   return options.groupBy ? `GROUP BY ${options.groupBy}` : "";
 };
-
 
 module.exports = {
   buildJoinClause,

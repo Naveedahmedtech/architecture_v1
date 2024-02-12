@@ -1,6 +1,6 @@
-const { responseHandler } = require("../../common/apiResponseHandler");
+const { logger } = require("../../../config/logger/logger.config");
+const { CustomError } = require("../../common/customErrorClass");
 const { insertRecord, selectQuery } = require("../helper/dbOperations");
-
 
 exports.createOne = async (
   req,
@@ -11,15 +11,12 @@ exports.createOne = async (
     returnFields = "*",
     excludeFields = [],
     joins = [],
-    successMessage = "Record created successfully",
     sortField,
     sortOrder,
     aggregates = [],
     groupByOptions = {},
   }
 ) => {
-  console.log(excludeFields);
-
   try {
     const newRecordId = await insertRecord(tableName, data);
 
@@ -36,27 +33,14 @@ exports.createOne = async (
       groupByOptions,
       excludeFields,
     });
-
-    return responseHandler(res, 201, false, successMessage, records);
+    return records[0];
   } catch (error) {
-    switch (error.message) {
-      case "InsertDataMissing":
-        return responseHandler(
-          res,
-          400,
-          true,
-          "No data provided for the new record"
-        );
-      case "InsertOperationFailed":
-        return responseHandler(
-          res,
-          400,
-          true,
-          "Failed to create a new record"
-        );
+    switch (error.code) {
+      case "DUPLICATE":
+        throw new CustomError("DUPLICATE", error.message, error);
       default:
-        console.error("Error creating a new record:", error);
-        return responseHandler(res, 500, true, "Internal Server Error");
+        logger.error({ message: "Error creating a new record:", error });
+        throw error;
     }
   }
 };

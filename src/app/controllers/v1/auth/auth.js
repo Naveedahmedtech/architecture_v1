@@ -1,37 +1,51 @@
 // project external files
 
 // project files
-const { hashPassword, verifyPassword } = require("../../../lib/common/bcrypt");
-const { createOne } = require("../../../utils/dbUtils/crud/createOne");
-const { responseHandler } = require("../../../utils/common/apiResponseHandler");
-const { generateToken, verifyToken } = require("../../../lib/common/jwt");
+const { TABLES } = require("../../../../constants/common");
+const {
+  buildDataObject,
+  createRecord,
+  handleAddError,
+  sendSuccessResponse,
+} = require("../../../../utils/common/crudHeloper/createRecordHelper");
+const {
+  hashPassword,
+  verifyPassword,
+} = require("../../../../lib/common/bcrypt");
+const { createOne } = require("../../../../utils/dbUtils/crud/createOne");
+const {
+  responseHandler,
+} = require("../../../../utils/common/apiResponseHandler");
+const { generateToken, verifyToken } = require("../../../../lib/common/jwt");
 const {
   insertRecord,
   updateRecord,
-} = require("../../../utils/dbUtils/helper/dbOperations");
+} = require("../../../../utils/dbUtils/helper/dbOperations");
 const {
   checkRecord,
   recordExists,
-} = require("../../../utils/dbUtils/helper/validationHelper");
-const { setCookie } = require("../../../utils/common/cookieHandler");
-const {
-  ACCESS_TOKEN_EXPIRY_SECONDS,
-  MAX_AGE_REFRESH_TOKEN,
-  MAX_AGE_ACCESS_TOKEN,
-  REFRESH_TOKEN_EXPIRY_DAYS,
-} = require("../../../constants/auth");
+} = require("../../../../utils/dbUtils/helper/validationHelper");
+const { setCookie } = require("../../../../utils/common/cookieHandler");
+const { ACCESS_TOKEN_EXPIRY_SECONDS } = require("../../../../constants/auth");
+const { logger } = require("../../../../config/logger/logger.config");
+const { ERROR_MSGS } = require("../../../../constants/common");
+const { handleToken, handleRefreshTokenErrors } = require("./utils/helper");
 
 // TODO: include role for registration, login, forgotPassword, change password, reset password, verify code
 // TODO: make the verification code api for both forgot and email verification after registration
 
-exports.register = async (req, res) => {
-  try {
-    const { full_name, email, password, role } = req.body;
+// TODO: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// TODO: MODIFY THE RESPONSE
 
-    // Check if user already registered
-    const userExists = await recordExists("users", [
+const TABLE_NAME = TABLES.USER;
+
+exports.register = async (req, res) => {
+  const { email } = req.body;
+  try {
+    await recordExists("users", [
       { field: "email", operator: "=", value: email },
     ]);
+<<<<<<< HEAD:src/app/controllers/auth/auth.js
 
     if (userExists) {
       return responseHandler(res, 409, true, "User already exists");
@@ -60,6 +74,21 @@ exports.register = async (req, res) => {
         console.error("Registration Error:", error);
         return responseHandler(res, 500, true, "Internal Server Error");
     }
+=======
+    const data = await buildDataObject(req, TABLE_NAME);
+    const hashedPassword = await hashPassword(data.password);
+    delete data.password;
+    data.password = hashedPassword;
+    const createdRecord = await createRecord(req, res, data, TABLE_NAME);
+    return sendSuccessResponse(
+      req,
+      res,
+      "created record successfully",
+      createdRecord
+    );
+  } catch (error) {
+    handleAddError(req, res, error);
+>>>>>>> api-key-4:src/app/controllers/v1/auth/auth.js
   }
 };
 
@@ -75,6 +104,7 @@ exports.login = async (req, res) => {
       { field: "email", operator: "=", value: email },
       { field: "role", operator: "=", value: validRole },
     ]);
+<<<<<<< HEAD:src/app/controllers/auth/auth.js
     if (!user) {
       return responseHandler(res, 404, true, "Invalid email or password");
     }
@@ -83,39 +113,39 @@ exports.login = async (req, res) => {
     const isMatch = await verifyPassword(password, user.password);
     if (!isMatch) {
       return responseHandler(res, 401, true, "Invalid email or password");
+=======
+    // Check if password matches
+    const isMatch = await verifyPassword(password, user.password);
+    if (!isMatch) {
+      return responseHandler(
+        req,
+        res,
+        401,
+        false,
+        ERROR_MSGS.INVALID_CREDENTIALS
+      );
+>>>>>>> api-key-4:src/app/controllers/v1/auth/auth.js
     }
-
-    // Generate JWT token with role
-    const payload = {
-      id: user.id,
-      email: user.email,
-      username: user.username,
-      role: user.role,
-    };
-    const token = generateToken(payload, ACCESS_TOKEN_EXPIRY_SECONDS);
-
-    // Generate refresh token
-    const refreshPayload = { id: user.id };
-    const refreshToken = generateToken(
-      refreshPayload,
-      REFRESH_TOKEN_EXPIRY_DAYS
-    );
-
-    setCookie(res, "token", token, MAX_AGE_ACCESS_TOKEN);
-    setCookie(res, "refreshToken", refreshToken, MAX_AGE_REFRESH_TOKEN);
-    setCookie(
+    logger.info({ code: "checked_record", user: user });
+    const { token, refreshToken } = await handleToken(
       res,
-      "expiresIn",
-      ACCESS_TOKEN_EXPIRY_SECONDS,
-      MAX_AGE_ACCESS_TOKEN
+      user.id,
+      user.email,
+      user.username,
+      user.role
     );
 
+<<<<<<< HEAD:src/app/controllers/auth/auth.js
     return responseHandler(res, 201, false, "Login Successfully", {
+=======
+    return responseHandler(req, res, 200, true, "Login Successfully", {
+>>>>>>> api-key-4:src/app/controllers/v1/auth/auth.js
       token,
-      expiresIn: ACCESS_TOKEN_EXPIRY_SECONDS,
       refreshToken,
+      expiresIn: ACCESS_TOKEN_EXPIRY_SECONDS,
     });
   } catch (error) {
+<<<<<<< HEAD:src/app/controllers/auth/auth.js
     switch (error.message) {
       case "RecordNotFound":
         return responseHandler(res, 404, true, "Invalid email or password");
@@ -127,6 +157,9 @@ exports.login = async (req, res) => {
         console.error("Error in login process:", error);
         return responseHandler(res, 500, true, "Internal Server Error");
     }
+=======
+    handleAddError(req, res, error);
+>>>>>>> api-key-4:src/app/controllers/v1/auth/auth.js
   }
 };
 
@@ -137,7 +170,11 @@ exports.refreshToken = async (req, res) => {
     // Verify the refresh token
     const decoded = verifyToken(refreshToken);
     if (!decoded) {
+<<<<<<< HEAD:src/app/controllers/auth/auth.js
       return responseHandler(res, 403, true, "Invalid refresh token");
+=======
+      return responseHandler(req, res, 403, false, "Invalid refresh token");
+>>>>>>> api-key-4:src/app/controllers/v1/auth/auth.js
     }
 
     // Check if the user still exists
@@ -153,6 +190,7 @@ exports.refreshToken = async (req, res) => {
     };
     const newAccessToken = generateToken(accessPayload);
 
+<<<<<<< HEAD:src/app/controllers/auth/auth.js
     return responseHandler(res, 200, false, "New token generated successfully", {
       accessToken: newAccessToken,
     });
@@ -174,6 +212,13 @@ exports.refreshToken = async (req, res) => {
         console.error("Error creating a new record:", error);
         return responseHandler(res, 500, true, "Internal Server Error");
     }
+=======
+    return responseHandler(req, res, 200, true, "New token generated successfully", {
+      accessToken: newAccessToken,
+    });
+  } catch (error) {
+    handleRefreshTokenErrors(req, res, error);
+>>>>>>> api-key-4:src/app/controllers/v1/auth/auth.js
   }
 };
 
