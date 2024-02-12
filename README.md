@@ -10,7 +10,7 @@ Our server is built with Node.js and Express, and it's designed to serve as a fo
 
 Prerequisites
 
-- Node.js (version 18) 
+- Node.js (version 18)   
 - npm (comes with Node.js)
 - PostgreSQL (for the database)
 
