@@ -24,16 +24,16 @@ Clone the project
 
 Go to the project directory
 
-Install dependencies
-
-```bash
-  npm install
-```
-
 Move to staging branch
 
 ```bash
   git checkout staging
+```
+
+Install dependencies
+
+```bash
+  npm install
 ```
 
 Start the server
