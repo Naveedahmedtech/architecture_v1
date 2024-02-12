@@ -19,12 +19,14 @@ Prerequisites
 Clone the project
 
 ```bash
-  git clone https://link-to-project
+  git clone git@github.com:Naveedahmedtech/architecture_v1.git
 ```
 
 Go to the project directory
 
-Move to staging branch
+__NOTE__ make sure you're on the staging branch that has the latest code.
+
+Move to staging branch 
 
 ```bash
   git checkout staging
