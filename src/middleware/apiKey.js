@@ -11,14 +11,15 @@ const verifyApiKey = async (req, res, next) => {
   try {
     const apiKey = req.header("X-API-KEY");
     if (!apiKey) {
-      responseHandler(req, res, 403, false, "API key is required");
+      return responseHandler(req, res, 403, false, "API key is required");
     }
     const record = await checkRecord(TABLE_NAME, [
       { field: "key", operator: "=", value: apiKey },
     ]);
 
-    if (apiKey !== record.key) {
-      responseHandler(req, res, 401, false, "Invalid API key");
+    // It's also good to check if record is not null before comparing apiKey
+    if (!record || apiKey !== record.key) {
+      return responseHandler(req, res, 401, false, "Invalid API key");
     }
 
     next();
@@ -45,6 +46,7 @@ const verifyApiKey = async (req, res, next) => {
     }
   }
 };
+
 
 module.exports = {
   verifyApiKey,

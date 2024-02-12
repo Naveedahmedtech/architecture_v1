@@ -16,6 +16,7 @@ const initDatabase = require("./src/config/db/db.config");
 const apiRouter = require("./src/app/routes/v1/api");
 const { responseHandler } = require("./src/utils/common/apiResponseHandler");
 const apiLimiter = require("./src/middleware/rateLimit");
+const { verifyApiKey } = require("./src/middleware/apiKey");
 
 // Connect to the database
 pool.connect((err, client, release) => {
@@ -45,6 +46,8 @@ app.use(
 );
 // use express api rate limit
 app.use(apiLimiter);
+
+app.use(verifyApiKey);
 
 app.use("/api/v1", apiRouter);
 
