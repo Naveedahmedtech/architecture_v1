@@ -47,7 +47,9 @@ app.use(
 // use express api rate limit
 app.use(apiLimiter);
 
-app.use(verifyApiKey);
+
+// * utilize the API_KEY to enhance the security
+// app.use(verifyApiKey);
 
 app.use("/api/v1", apiRouter);
 

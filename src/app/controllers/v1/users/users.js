@@ -33,7 +33,6 @@ const {
 const {
   uploadFile,
 } = require("../../../../utils/common/crudHeloper/uploadFile");
-const { logger } = require("../../../../config/logger/logger.config");
 
 const TABLE_NAME = TABLES.USER;
 const FILE_COLUMN = "image";
@@ -112,7 +111,7 @@ exports.delete = async (req, res) => {
   try {
     const id = req.params.id;
     // delete images from ----
-    const deletedImages = await deleteCloudImage(TABLE_NAME, id);
+    // const deletedImages = await deleteCloudImage(TABLE_NAME, id);
 
     const deletedRecord = await deleteRecord(req, res, TABLE_NAME, id);
     return sendUpdateSuccessResponse(
@@ -129,7 +128,7 @@ exports.delete = async (req, res) => {
 exports.deleteAll = async (req, res) => {
   try {
     const columnImage = "image";
-    await deleteAllCloudImages(TABLE_NAME, columnImage);
+    // await deleteAllCloudImages(TABLE_NAME, columnImage);
 
     const result = await deleteALlRecord(req, res, TABLE_NAME);
     return responseHandler(req, res, 200, true, "Record Delete Successfully", {
