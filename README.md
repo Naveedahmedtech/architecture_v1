@@ -8,7 +8,7 @@ Our server is built with Node.js and Express, and it's designed to serve as a fo
 
 ## Getting Started
 
-Prerequisites
+Prerequisites 
 
 - Node.js (version 18)   
 - npm (comes with Node.js)
