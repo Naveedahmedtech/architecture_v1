@@ -30,6 +30,12 @@ Install dependencies
   npm install
 ```
 
+Move to staging branch
+
+```bash
+  git checkout staging
+```
+
 Start the server
 
 ```bash
