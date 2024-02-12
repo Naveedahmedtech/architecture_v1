@@ -10,10 +10,9 @@ Our server is built with Node.js and Express, and it's designed to serve as a fo
 
 Prerequisites
 
-- Node.js (version 12.x or higher recommended)
+- Node.js (version 18)
 - npm (comes with Node.js)
 - PostgreSQL (for the database)
-
 
 ## Run Locally
 
@@ -36,7 +35,6 @@ Start the server
 ```bash
   npm run start
 ```
-
 
 ## Environment Variables
 
@@ -62,7 +60,6 @@ To run this project, you will need to add the following environment variables to
 
 `EXPRESS_SESSION_KEY`
 
-
 ## Features
 
 - Rate Limiting: Protects the API from excessive requests.
@@ -70,14 +67,3 @@ To run this project, you will need to add the following environment variables to
 - Logging: Integrated request logging using express-pino-logger.
 - Authentication: User authentication setup with passport.
 - Static Files: Serves static files from the public directory.
-
-
-
-
-
-
-
-
-
-
-
